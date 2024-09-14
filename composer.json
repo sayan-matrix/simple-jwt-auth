@@ -1,0 +1,32 @@
+{
+    "name": "sayandey18/simple-jwt-auth",
+    "description": "Extends the WordPress REST API using JSON Web Tokens for robust authentication and authorization. It provides a secure and reliable way to access and manage WordPress data from external applications, making it ideal for building headless CMS solutions.",
+    "version": "1.0.0",
+    "type": "wordpress-plugin",
+    "license": "GPL v2 or later",
+    "authors": [
+        {
+            "name": "Sayan",
+            "email": "mr.sayandey18@outlook.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/sayandey18/simple-jwt-auth/issues",
+        "source": "https://github.com/sayandey18/simple-jwt-auth"
+    },
+    "minimum-stability": "stable",
+    "config": {
+        "vendor-dir": "includes/vendor",
+        "allow-plugins": {
+            "composer/installers": true
+        },
+        "platform": {
+            "php": "7.4"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "composer/installers": "^2.3",
+        "firebase/php-jwt": "^6.10"
+    }
+}
