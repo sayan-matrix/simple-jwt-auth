@@ -145,11 +145,11 @@
 
                                     <div class="simplejwt-signature-area RS256" 
                                         style="<?php echo esc_attr( $symmetric_algo ? 'display: none;' : '' ); ?>">
-                                        <textarea class="simplejwt-keyfile-input" name="simplejwt_public_key"
-                                            id="simplejwt_public_key" rows="6" placeholder="-----BEGIN PUBLIC KEY-----" 
-                                            <?php echo esc_attr( $symmetric_algo ? '' : 'required' ); ?>></textarea>
                                         <textarea class="simplejwt-keyfile-input" name="simplejwt_private_key"
                                             id="simplejwt_private_key" rows="8" placeholder="-----BEGIN PRIVATE KEY-----" 
+                                            <?php echo esc_attr( $symmetric_algo ? '' : 'required' ); ?>></textarea>
+                                        <textarea class="simplejwt-keyfile-input" name="simplejwt_public_key"
+                                            id="simplejwt_public_key" rows="6" placeholder="-----BEGIN PUBLIC KEY-----" 
                                             <?php echo esc_attr( $symmetric_algo ? '' : 'required' ); ?>></textarea>
                                     </div>
 

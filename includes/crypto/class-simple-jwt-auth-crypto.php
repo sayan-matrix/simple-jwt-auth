@@ -22,12 +22,12 @@ class Simple_Jwt_Auth_Crypto {
     /**
 	 * Encrypts the provided data using the AES-256-GCM algorithm.
 	 * 
-	 * @since 1.0.0
-	 *
-	 * @param string $decrypted 
-	 * @return (string|false|WP_Error)
+	 * @since	1.0.0
+	 * 
+	 * @param	string $decrypted 
+	 * @return	string|WP_Error
 	 */
-	public static function encrypt( $decrypted ) {
+	public static function encrypt( string $decrypted ) {
 		$secret = defined( 'SIMPLE_JWT_AUTH_ENCRYPT_KEY' ) ? SIMPLE_JWT_AUTH_ENCRYPT_KEY : false;
 
 		// Check the encryption key, if not exists return an error.
@@ -63,12 +63,12 @@ class Simple_Jwt_Auth_Crypto {
 	/**
 	 * Decrypts the provided encrypted data using the AES-256-GCM algorithm.
 	 *
-	 * @since 1.0.0
+	 * @since	1.0.0
 	 *
-	 * @param string $encrypted 
-	 * @return (string|false|WP_Error)
+	 * @param	string $encrypted 
+	 * @return	string|WP_Error
 	 */
-	public static function decrypt( $encrypted ) {
+	public static function decrypt( string $encrypted ) {
 		$secret = defined( 'SIMPLE_JWT_AUTH_ENCRYPT_KEY' ) ? SIMPLE_JWT_AUTH_ENCRYPT_KEY : false;
 
 		// Check the encryption key, if not exists return an error.

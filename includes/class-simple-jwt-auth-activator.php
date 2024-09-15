@@ -23,6 +23,8 @@ class Simple_Jwt_Auth_Activator {
 	/**
      * Create a private function that will create `{wp_prefix}_simplejwt_config`
      * table in your WordPress database.
+     * 
+     * @since   1.0.0
      */
 	private static function simplejwt_create_table() {
 		global $wpdb;
@@ -58,6 +60,8 @@ class Simple_Jwt_Auth_Activator {
 	/**
      * Create a private function that will insert the plugin default config 
      * data into `{wp_prefix}_simplejwt_config` table.
+     * 
+     * @since   1.0.0
      */
 	private static function simplejwt_migrate_table() {
 		global $wpdb;

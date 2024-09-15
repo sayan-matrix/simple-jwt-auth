@@ -13,16 +13,7 @@
  * @author     Sayan Dey <mr.sayandey18@outlook.com>
  */
 class Simple_Jwt_Auth_Deactivator {
-
-	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
-	 *
-	 * @since    1.0.0
-	 */
 	public static function deactivate() {
 
 	}
-
 }

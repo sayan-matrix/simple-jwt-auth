@@ -17,43 +17,42 @@
  * @author     Sayan Dey <mr.sayandey18@outlook.com>
  */
 class Simple_Jwt_Auth {
-
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
 	 * the plugin.
 	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      Simple_Jwt_Auth_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @since	1.0.0
+	 * @access	protected
+	 * @var		Simple_Jwt_Auth_Loader $loader Maintains and registers all hooks for the plugin.
 	 */
-	protected $loader;
+	protected Simple_Jwt_Auth_Loader $loader;
 
 	/**
 	 * The unique identifier of this plugin.
 	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
+	 * @since	1.0.0
+	 * @access	protected
+	 * @var		string $plugin_name The string used to uniquely identify this plugin.
 	 */
-	protected $plugin_name;
+	protected string $plugin_name;
 
 	/**
 	 * The current version of the plugin.
 	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      string    $version    The current version of the plugin.
+	 * @since	1.0.0
+	 * @access	protected
+	 * @var		string $version The current version of the plugin.
 	 */
-	protected $version;
+	protected string $version;
 
 	/**
 	 * The endpoint of this plugin API.
 	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      string    $endpoint    The current JWT REST API endpoint of this plugin.
+	 * @since	1.0.0
+	 * @access	protected
+	 * @var		string $endpoint The JWT endpoint of this plugin.
 	 */
-	protected $endpoint;
+	protected string $endpoint;
 
 	/**
 	 * Define the core functionality of the plugin.
@@ -62,7 +61,7 @@ class Simple_Jwt_Auth {
 	 * Load the dependencies, define the locale, and set the hooks for the admin area and
 	 * the public-facing side of the site.
 	 *
-	 * @since    1.0.0
+	 * @since	1.0.0
 	 */
 	public function __construct() {
 		if ( defined( 'SIMPLE_JWT_AUTH_VERSION' ) ) {
@@ -87,7 +86,6 @@ class Simple_Jwt_Auth {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
-
 	}
 
 	/**
@@ -104,11 +102,10 @@ class Simple_Jwt_Auth {
 	 * Create an instance of the loader which will be used to register the hooks
 	 * with WordPress.
 	 *
-	 * @since    1.0.0
-	 * @access   private
+	 * @since	1.0.0
+	 * @access	private
 	 */
 	private function load_dependencies() {
-
 		/**
 		 * Load dependencies managed by composer.
 		 */
@@ -151,7 +148,6 @@ class Simple_Jwt_Auth {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/endpoints/api-simple-jwt-auth.php';
 
 		$this->loader = new Simple_Jwt_Auth_Loader();
-
 	}
 
 	/**
@@ -160,8 +156,8 @@ class Simple_Jwt_Auth {
 	 * Uses the Simple_Jwt_Auth_i18n class in order to set the domain and to register the hook
 	 * with WordPress.
 	 *
-	 * @since    1.0.0
-	 * @access   private
+	 * @since	1.0.0
+	 * @access	private
 	 */
 	private function set_locale() {
 		$plugin_i18n = new Simple_Jwt_Auth_i18n();
@@ -173,8 +169,8 @@ class Simple_Jwt_Auth {
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
 	 *
-	 * @since    1.0.0
-	 * @access   private
+	 * @since	1.0.0
+	 * @access	private
 	 */
 	private function define_admin_hooks() {
 
@@ -192,8 +188,8 @@ class Simple_Jwt_Auth {
 	 * Register all of the hooks related to the public-facing functionality
 	 * of the plugin.
 	 *
-	 * @since    1.0.0
-	 * @access   private
+	 * @since	1.0.0
+	 * @access	private
 	 */
 	private function define_public_hooks() {
 		$plugin_public = new Simple_Jwt_Auth_Public( $this->get_plugin_name(), $this->get_version() );
@@ -208,7 +204,7 @@ class Simple_Jwt_Auth {
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
 	 *
-	 * @since    1.0.0
+	 * @since	1.0.0
 	 */
 	public function run() {
 		$this->loader->run();
@@ -218,40 +214,40 @@ class Simple_Jwt_Auth {
 	 * The name of the plugin used to uniquely identify it within the context of
 	 * WordPress and to define internationalization functionality.
 	 *
-	 * @since     1.0.0
-	 * @return    string    The name of the plugin.
+	 * @since	1.0.0
+	 * @return	string The name of the plugin.
 	 */
-	public function get_plugin_name() {
+	public function get_plugin_name(): string {
 		return $this->plugin_name;
 	}
 
 	/**
 	 * The reference to the class that orchestrates the hooks with the plugin.
 	 *
-	 * @since     1.0.0
-	 * @return    Simple_Jwt_Auth_Loader    Orchestrates the hooks of the plugin.
+	 * @since	1.0.0
+	 * @return	Simple_Jwt_Auth_Loader Orchestrates the hooks of the plugin.
 	 */
-	public function get_loader() {
+	public function get_loader(): Simple_Jwt_Auth_Loader {
 		return $this->loader;
 	}
 
 	/**
 	 * Retrieve the version number of the plugin.
 	 *
-	 * @since     1.0.0
-	 * @return    string    The version number of the plugin.
+	 * @since	1.0.0
+	 * @return	string The version number of the plugin.
 	 */
-	public function get_version() {
+	public function get_version(): string {
 		return $this->version;
 	}
 
 	/**
 	 * Retrieve the api endpoint of the plugin.
 	 *
-	 * @since     1.0.0
-	 * @return    string    The current JWT REST API endpoint of this plugin.
+	 * @since	1.0.0
+	 * @return	string The current JWT REST API endpoint of this plugin.
 	 */
-	public function get_endpoint() {
+	public function get_endpoint(): string {
 		return $this->endpoint;
 	}
 
