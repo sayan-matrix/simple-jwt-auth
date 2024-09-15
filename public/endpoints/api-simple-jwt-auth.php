@@ -22,27 +22,27 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      string    $plugin_name    The ID of this plugin.
+	 * @var      string $plugin_name The ID of this plugin.
 	 */
-	private $plugin_name;
+	private string $plugin_name;
 
 	/**
 	 * The version of this plugin.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      string    $version    The current version of this plugin.
+	 * @var      string $version The current version of this plugin.
 	 */
-	private $version;
+	private string $version;
 
 	/**
 	 * The endpoint of this plugin API.
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      string    $endpoint    The current JWT REST API endpoint of this plugin.
+	 * @var      string $endpoint The JWT endpoint of this plugin.
 	 */
-	private $endpoint;
+	private string $endpoint;
 
     /**
 	 * Store errors to display if the JWT is wrong.
@@ -57,7 +57,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
      * @since   1.0.0
 	 * @see     https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40
      */
-    private $supported_algorithms = [
+    private array $supported_algos = [
 		'HS256',
 		'HS384',
 		'HS512',
@@ -80,7 +80,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 * @param   string $version
      * @param   string $endpoint
 	 */
-	public function __construct( $plugin_name, $version, $endpoint ) {
+	public function __construct( string $plugin_name, string $version, string $endpoint ) {
 		parent::__construct( $plugin_name, $version );
         
         $this->endpoint = $endpoint . '/v' . intval( $version );
@@ -119,10 +119,15 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
      * Get the user and password in the request body and generate a JWT token 
      * for further authentication.
 	 * 
-     * @param   WP_REST_Request $request
+     * @param	WP_REST_Request $request
+	 * @return	mixed|WP_Error|null
      * 
     */
     public function simplejwt_generate_token( WP_REST_Request $request ) {
+		// Initiate the `AES-256-GCM` crypto class.
+		$crypto = new Simple_Jwt_Auth_Crypto();
+
+		// Get defined algorithm from the database.
         $algorithm = $this->simplejwt_get_algorithm();
         
         // Check algorithm if not exist return an error.
@@ -134,10 +139,9 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 			);
 		}
 
-        if ( $algorithm === 'HS256' || $algorithm === 'HS384' || $algorithm === 'HS512' ) {
-            $signing_key = $this->simplejwt_get_plugin_config( 'secret_key' );
-
-            $sanitize_key = sanitize_textarea_field( $signing_key );
+		if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
+			// Get the secret key from database.
+			$signing_key = $this->simplejwt_get_plugin_config( 'secret_key' );
 
             // Check the signing key if not exist return an error.
             if ( $signing_key === false ) {
@@ -148,12 +152,18 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
                 );
             }
 
-            // Generate JWT token using authentication.
-            $response = $this->simplejwt_make_authenticate( $request, $algorithm, $sanitize_key );
-        } else {
-            $signing_key = $this->simplejwt_get_plugin_config( 'private_key' );
+			// Decrypt the secret key using `AES-256-GCM` algo.
+			$secret_key = $crypto->decrypt( 
+				sanitize_textarea_field( $signing_key ) 
+			);
 
-            // Check the signing key if not exist return an error.
+            // Generate JWT token using authentication.
+            $response = $this->simplejwt_make_authenticate( $request, $algorithm, $secret_key );
+		} else {
+			// Get the private key from database.
+			$signing_key = $this->simplejwt_get_plugin_config( 'private_key' );
+
+			// Check the signing key if not exist return an error.
             if ( $signing_key === false ) {
                 return new WP_Error(
                     'simplejwt_auth_bad_config',
@@ -162,9 +172,14 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
                 );
             }
 
-            // Generate JWT token using authentication.
-            $response = $this->simplejwt_make_authenticate( $request, $algorithm, $signing_key );
-        }
+			// Decrypt the private key using `AES-256-GCM` algo.
+			$private_key = $crypto->decrypt( 
+				sanitize_textarea_field( $signing_key ) 
+			);
+
+			// Generate JWT token using authentication.
+            $response = $this->simplejwt_make_authenticate( $request, $algorithm, $private_key );
+		}
 
 		// The token is signed, now create the user object.
 		$user_data = new WP_REST_Response( array(
@@ -189,8 +204,11 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 *
 	 * The function take the token and try to decode it and validated it.
 	 * @since   1.0.0
+	 * 
 	 * @param   WP_REST_Request $request
-	 * @return  WP_Error | Object | Array
+	 * @param	bool|string $custom_token
+	 * 
+	 * @return  object|WP_Error|array
 	 * 
 	 * The get_header( 'Authorization' ) checks for the header in the following order:
 	 * 1. HTTP_AUTHORIZATION
@@ -297,7 +315,8 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 * return the user.
 	 *
 	 * @since   1.0.0
-	 * @return  (int|bool)
+	 * @param	int|bool $current_user
+	 * @return  int|bool
 	 */
     public function simplejwt_determine_current_user( $current_user ) {
 		$rest_api_slug = rest_get_url_prefix();
@@ -351,6 +370,9 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	/**
 	 * Filter to hook the rest_pre_dispatch, if the is an error in the request
 	 * send it, if there is no error just continue with the current request.
+	 * 
+	 * @param	$request
+	 * @return	mixed|WP_Error|null
 	 */
 	public function simplejwt_rest_pre_dispatch( $request ) {
 		if ( is_wp_error( $this->jwt_error ) ) {
@@ -365,12 +387,13 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 * that the algorithm is in the supported list.
      * 
      * @since   1.0.0
+	 * @return	string
 	 */
     private function simplejwt_get_algorithm() {
         $algorithm = $this->simplejwt_get_plugin_config( 'algorithm' );
 
         if ( !empty( $algorithm ) ) {
-            if ( !in_array( $algorithm, $this->supported_algorithms ) ) {
+            if ( !in_array( $algorithm, $this->supported_algos ) ) {
                 return false;
             }
         }
@@ -378,7 +401,23 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		return $algorithm;
 	}
 
-    private function simplejwt_make_authenticate( $request, $algorithm, $signing_key ) {
+	/**
+	 * Get the user and password in the request body and generate
+	 * JWT by using the algorithm and signing_key.
+	 * 
+	 * @since   1.0.0
+	 * 
+	 * @param	WP_REST_Request $request
+	 * @param	string $algorithm
+	 * @param	string $signing_key
+	 * 
+	 * @return	WP_Error|object
+	 */
+    private function simplejwt_make_authenticate( 
+		WP_REST_Request $request, 
+		string $algorithm, 
+		string $signing_key 
+	) {
         $username = $request->get_param( 'username' );
 		$password = $request->get_param( 'password' );
 
@@ -441,9 +480,10 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
      * config value to used in authenticate.
      * 
      * @since   1.0.0
-     * @return  (string|false)
+	 * @param	string $config_name
+     * @return	string|false
      */
-    private function simplejwt_get_plugin_config( $config_name ) {
+    private function simplejwt_get_plugin_config( string $config_name ) {
         global $wpdb;
 
         // Set the table name.
