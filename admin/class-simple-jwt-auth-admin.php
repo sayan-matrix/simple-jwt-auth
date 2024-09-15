@@ -27,27 +27,49 @@ class Simple_Jwt_Auth_Admin {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      string    $plugin_name    The ID of this plugin.
+	 * @var      string The ID of this plugin.
 	 */
-	private $plugin_name;
+	private string $plugin_name;
 
 	/**
 	 * The version of this plugin.
 	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      string    $version    The current version of this plugin.
+	 * @since	1.0.0
+	 * @access	private
+	 * @var		string The current version of this plugin.
 	 */
-	private $version;
+	private string $version;
+
+	/**
+     * Supported algorithms to sign the token.
+     * 
+     * @since   1.0.0
+	 * @access	private
+	 * @see     https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40
+     */
+    private array $supported_algos = [
+		'HS256',
+		'HS384',
+		'HS512',
+		'RS256',
+		'RS384',
+		'RS512',
+		'ES256',
+		'ES384',
+		'ES512',
+		'PS256',
+		'PS384',
+		'PS512'
+	];
 
 	/**
 	 * Initialize the class and set its properties.
 	 *
-	 * @since    1.0.0
-	 * @param      string    $plugin_name       The name of this plugin.
-	 * @param      string    $version    The version of this plugin.
+	 * @since	1.0.0
+	 * @param	string $plugin_name The name of this plugin.
+	 * @param	string $version The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct( string $plugin_name, string $version ) {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 	}
@@ -55,7 +77,7 @@ class Simple_Jwt_Auth_Admin {
 	/**
 	 * Register the stylesheets for the admin area.
 	 *
-	 * @since    1.0.0
+	 * @since	1.0.0
 	 */
 	public function enqueue_styles() {
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/simple-jwt-auth-admin.css', array(), $this->version, 'all' );
@@ -64,7 +86,7 @@ class Simple_Jwt_Auth_Admin {
 	/**
 	 * Register the JavaScript for the admin area.
 	 *
-	 * @since    1.0.0
+	 * @since	1.0.0
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/simple-jwt-auth-admin.js', array( 'jquery' ), $this->version, true );
@@ -104,7 +126,7 @@ class Simple_Jwt_Auth_Admin {
 	 * Get the all config data as Array from the config` table.
 	 * 
 	 * @since	1.0.0
-	 * @return 	(array)
+	 * @return	array
 	 */
 	private function simplejwt_get_plugin_config() {
 		global $wpdb;
@@ -131,9 +153,11 @@ class Simple_Jwt_Auth_Admin {
 	 * Create a parent class to override the admin style for plugin UI/UX.
 	 * 
 	 * @since	1.0.0
-	 * @return	(string)
+	 * 
+	 * @param	string $classes
+	 * @return	string
 	 */
-	public function simplejwt_admin_body_classes ( $classes ) {
+	public function simplejwt_admin_body_classes( string $classes ) {
 		$screen = get_current_screen();
 
 		// Check if the current screen is one of your plugin's pages.
@@ -150,20 +174,67 @@ class Simple_Jwt_Auth_Admin {
 	 * 
 	 * @since	1.0.0
 	 */
-	function simplejwt_settings_callback() {
+	public function simplejwt_settings_callback() {
 		if ( isset( $_POST['simplejwt_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['simplejwt_nonce'] ) ), 'simplejwt_nonce' ) ) {
-			// Set admin notice.
-			
-			$location = 'simple-jwt-auth';
+			// Initialize the `simplejwt_plugin_messages()` for admin message.
+			$message = $this->simplejwt_plugin_messages();
+
+			// Checks the all form values.
+			$disable_xmlrpc = isset( $_POST['simplejwt_disable_xmlrpc'] ) ? true : false;
+			$enable_jwt     = isset( $_POST['simplejwt_enable_jwt'] ) ? true : false;
+			$algorithm      = isset( $_POST['simplejwt_algorithm'] ) ? sanitize_text_field( wp_unslash( $_POST['simplejwt_algorithm'] ) ) : 'HS256';
+			$secret_key     = isset( $_POST['simplejwt_secret_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_secret_key'] ) ) : '';
+			$private_key    = isset( $_POST['simplejwt_private_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_private_key'] ) ) : '';
+    		$public_key     = isset( $_POST['simplejwt_public_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_public_key'] ) ) : '';
+
+			// Send error response if the algorithms not matched.
+			if ( !empty( $algorithm ) ) {
+				if ( !in_array( $algorithm, $this->supported_algos ) ) {
+					$this->simplejwt_admin_redirect( false, $message->unsuppoted_algo );
+				}
+			}
+
+			// 
+			if ( $enable_jwt ) {
+				// Checks if algorithm is HS256, HS384, or HS512 and if secret key is empty.
+				if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) && empty( $secret_key ) ) {
+					$this->simplejwt_admin_redirect( false, $message->empty_secret_key );
+				}
+
+				// If the algorithm is not HS*, check for public and private keys.
+				if ( !in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
+					if ( empty( $private_key ) ) {
+						$this->simplejwt_admin_redirect( false, $message->empty_private_key );
+					}
+
+					if ( empty( $public_key ) ) {
+						$this->simplejwt_admin_redirect( false, $message->empty_public_key );
+					}
+				}
+			}
+
+			// Checks for a valid public key using OpenSSL.
+			if ( !empty( $public_key ) ) {
+				if ( !openssl_pkey_get_public( $public_key ) ) {
+					$this->simplejwt_admin_redirect( false, $message->invalid_public_key );
+				}
+			}
+
+			// Checks for a valid private key using OpenSSL.
+			if ( !empty( $private_key ) ) {
+				if ( !openssl_pkey_get_private( $private_key ) ) {
+					$this->simplejwt_admin_redirect( false, $message->invalid_private_key );
+				}
+			}
+	
 			// Redirect the user to the appropriate page,
-			$this->simplejwt_admin_redirect( true, $location);
-			exit();
+			$this->simplejwt_admin_redirect( true, $message->success );
 		} else {
 			wp_die(
 				esc_html__( 'Invalid nonce specified!', 'simple-jwt-auth' ),
 				esc_html__( 'JWT Error', 'simple-jwt-auth' ),
 				[
-					'response' => 403,
+					'response'  => 403,
 					'back_link' => 'admin.php?page=simple-jwt-auth'
 				]
 			);
@@ -171,53 +242,62 @@ class Simple_Jwt_Auth_Admin {
 	}
 	
 	/**
-	 * Redirects to a specified admin page with custom query parameters.
+	 * Redirects to a specified plugin page with custom transient key.
 	 * 
-	 * This function performs a redirection to a WordPress admin page and appends
-	 * custom query arguments to the URL. Specifically, it adds a `simplejwt_admin_notice`
-	 * and `simplejwt_response` parameter to the URL. The destination page is determined
-	 * by the `$location` parameter.
+	 * This function performs a redirection to a WordPress JWT plugin settings
+	 * page and set `simplejwt_admin_notice` in transient for admin notice.
 	 * 
-	 * @since		 1.0.0
-	 * @param string $notice
-	 * @param string $response
-	 * @param string $location
+	 * @since		  1.0.0
+	 * @param boolean $status
+	 * @param string  $message
 	 */
-	public function simplejwt_admin_redirect( $status, $location ) {
-		wp_redirect( 
-			esc_url_raw( 
-				add_query_arg( 
-					array(
-						'settings-updated' => $status ? 'true' : 'false'
-					),
-					admin_url( 'admin.php?page=' . $location )
-				) 
-			) 
-		);
+	public function simplejwt_admin_redirect( bool $status, string $message ) {
+		if ( get_transient( 'simplejwt_admin_notice' ) ) {
+			delete_transient( 'simplejwt_admin_notice' );
+		}
+
+		$set_notice = set_transient( 'simplejwt_admin_notice', [
+			'status'  => $status ? 'success' : 'error',
+			'message' => $message
+		], MINUTE_IN_SECONDS );
+
+		if ( $set_notice === true ) {
+			wp_redirect( admin_url( 'admin.php?page=simple-jwt-auth' ) );
+			exit();
+		}
 	}
 
 	/**
 	 * Displays admin notices in the WordPress admin area.
 	 * 
-	 * This function checks if a `simplejwt_notice` parameter is present in the request.
-	 * If the parameter is set show admin notice accordingly.
+	 * This function checks `simplejwt_admin_notice` key is present in the transient.
+	 * If the transient is set show admin notice accordingly.
 	 * 
 	 * Nonce verification is handled during form submission to ensure data integrity.
 	 * 
 	 * @since	1.0.0
 	 */
 	public function simplejwt_admin_notices() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( isset( $_REQUEST['settings-updated'] ) ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			if( $_REQUEST['settings-updated'] === 'true' ) {
-				$message = __( 'Settings saved successfully.', 'simple-jwt-auth' );
-				// translators: %s is the success notice message.
-				printf( '<div class="notice notice-success is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
-		  	} else {
-				// translators: %s is the error notice message.
-				$message = __( 'Settings saved failed!', 'simple-jwt-auth' );
-				printf( '<div class="notice notice-error is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+		// Checks the `simplejwt_admin_notice` key is present in transient.
+		if ( get_transient( 'simplejwt_admin_notice' ) ) {
+			$get_notice = get_transient( 'simplejwt_admin_notice' );
+
+			// Checks `status` and `message` are already set.
+			if ( isset( $get_notice['status'], $get_notice['message'] ) ) {
+				$status  = sanitize_text_field( wp_unslash( $get_notice['status'] ) );
+				$message = sanitize_text_field( wp_unslash( $get_notice['message'] ) );
+
+				// Delete the existing transient to store new notice.
+				$delete_transist = delete_transient( 'simplejwt_admin_notice' );
+				if ( $delete_transist ) {
+					if ( $status === 'success' ) {
+						// translators: %s is the success notice message.
+						printf( '<div class="notice notice-success is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+					} else {
+						// translators: %s is the error notice message.
+						printf( '<div class="notice notice-error is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+					}
+				}
 			}
 		}
 	}
@@ -227,7 +307,7 @@ class Simple_Jwt_Auth_Admin {
 	 * admin users if there is updated/recommended version is available.
 	 * 
 	 * @since	1.0.0
-	 * @return	(array)
+	 * @return	array
 	 */
 	private function simplejwt_version_info() {
 		global $wp_version;
@@ -257,19 +337,43 @@ class Simple_Jwt_Auth_Admin {
 		}
 
 		return [
-			'wp_version' => $current_wp,
-			'wp_body_message' => $wp_body_message,
-			'wp_update_message' => $wp_update_message,
-			'php_version' => $current_php,
-			'php_body_message' => $php_body_message,
+			'wp_version'         => $current_wp,
+			'wp_body_message'    => $wp_body_message,
+			'wp_update_message'  => $wp_update_message,
+			'php_version'        => $current_php,
+			'php_body_message'   => $php_body_message,
 			'php_update_message' => $php_update_message,
 		];
+	}
+
+	/**
+	 * Set plugin messages for success, error and validation.
+	 * 
+	 * @since	1.0.0
+	 * @return	object
+	 */
+	private function simplejwt_plugin_messages() { 
+		$messages = new stdClass();
+		$messages->error               = __( 'Settings save failed!', 'simple-jwt-auth' );
+		$messages->success             = __( 'Settings saved successfully', 'simple-jwt-auth' );
+		$messages->unknown_error       = __( 'Something went wrong, try again', 'simple-jwt-auth' );
+		$messages->unsupported_algo    = __( 'Unsupported algorithm', 'simple-jwt-auth' );
+		$messages->empty_secret_key	   = __( 'Secret key is missing', 'simple-jwt-auth' );
+		$messages->empty_public_key	   = __( 'Public key is missing', 'simple-jwt-auth' );
+		$messages->empty_private_key   = __( 'Private key is missing', 'simple-jwt-auth' );
+		$messages->invalid_private_key = __( 'Invalid private key format', 'simple-jwt-auth' );
+		$messages->invalid_public_key  = __( 'Invalid public key format', 'simple-jwt-auth' );
+	
+		return $messages;
 	}
 
 	/**
 	 * Set SVG icon fo the plugin admin menu.
 	 * 
 	 * @since	1.0.0
+	 * 
+	 * @param	boolean $base64
+	 * @return	string
 	 */
 	private function simplejwt_menu_icon( $base64 = true ) {
 		$svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#a7aaad" d="M10.2 0v6.456L12 8.928l1.8-2.472V0zm3.6 6.456v3.072l2.904-.96L20.52 3.36l-2.928-2.136zm2.904 2.112-1.8 2.496 2.928.936 6.144-1.992-1.128-3.432zM17.832 12l-2.928.936 1.8 2.496 6.144 1.992 1.128-3.432zm-1.128 3.432-2.904-.96v3.072l3.792 5.232 2.928-2.136zM13.8 17.544 12 15.072l-1.8 2.472V24h3.6zm-3.6 0v-3.072l-2.904.96L3.48 20.64l2.928 2.136zm-2.904-2.112 1.8-2.496L6.168 12 .024 13.992l1.128 3.432zM6.168 12l2.928-.936-1.8-2.496-6.144-1.992-1.128 3.432zm1.128-3.432 2.904.96V6.456L6.408 1.224 3.48 3.36z"></path></svg>';
