@@ -24,6 +24,7 @@
     --color-secondary: #ebe4ff;
     --color-background: #f0f0f1;
     --color-field-background: #f2f3f6;
+    --color-scrollbar-background: #F5F5F5;
     --color-border-primary: #dad9da;
     --color-border-secondary: #e5e5e5;
 
@@ -36,6 +37,7 @@
 
     /* Shadow */
     --box-shadow-primary: 0 1px 1px rgba(0, 0, 0, 0.04);
+    --box-shadow-scrollbar: inset 0 0 6px rgba(0, 0, 0, 0.2);
 
     /* Checkbox Button */
     --btn-bg-color: #c6c6c6;
@@ -286,11 +288,14 @@
 
 .simplejwt-checkbox-wrapper input[type="checkbox"] {
     all: unset;
+    display: inline-block;
     position: relative;
     width: 40px;
     height: 20px;
     cursor: pointer;
     appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
     background: var(--btn-bg-color);
     outline: none;
     border-radius: 20px;
@@ -338,7 +343,7 @@
     resize: none;
     padding: 12px 20px;
     border-radius: 5px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 400;
     line-height: 24px;
     background: var(--color-field-background);
@@ -369,6 +374,22 @@
     border: none;
     outline: none;
     box-shadow: none;
+}
+
+.simplejwt .simplejwt-keyfile-input::-webkit-scrollbar-track {
+    cursor: default;
+	background: var(--color-scrollbar-background);
+    -webkit-box-shadow: var(--box-shadow-scrollbar);
+}
+
+.simplejwt .simplejwt-keyfile-input::-webkit-scrollbar {
+	width: 7px;
+	background: var(--color-scrollbar-background);
+}
+
+.simplejwt .simplejwt-keyfile-input::-webkit-scrollbar-thumb {
+    cursor: default;
+	background: var(--color-primary);
 }
 
 .simplejwt-notes {
