@@ -73,12 +73,11 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-simple-jwt-auth.php';
  * then kicking off the plugin from this point in the file does
  * not affect the page life cycle.
  *
- * @since    1.0.0
+ * @since	1.0.0
  */
 function run_simple_jwt_auth() {
-
 	$plugin = new Simple_Jwt_Auth();
 	$plugin->run();
-
 }
+
 run_simple_jwt_auth();
