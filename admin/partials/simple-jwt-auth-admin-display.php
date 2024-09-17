@@ -107,15 +107,15 @@
                             </div>
                             <div class="simplejwt-action-area">
                                 <div class="simplejwt-checkbox-wrapper">
-                                    <input class="simplejwt-checkbox-btn" type="checkbox" id="simplejwt_enable_jwt"
-                                        name="simplejwt_enable_jwt" <?php checked( isset( $config[ 'disable_jwt' ] ) && $config[ 'disable_jwt' ] == '0', true ); ?> />
+                                    <input type="checkbox" class="simplejwt-checkbox-btn" id="simplejwt_enable_auth"
+                                        name="simplejwt_enable_auth" <?php checked( isset( $config[ 'enable_auth' ] ) && $config[ 'enable_auth' ] == '1', true ); ?> />
                                 </div>
                             </div>
                         </div>
                         <div class="simplejwt-card-body">
                             <div class="simplejwt-key-area">
                                 <div class="simplejwt-key-wrapper" 
-                                    style="<?php echo esc_attr( isset( $config[ 'disable_jwt' ] ) && $config[ 'disable_jwt' ] == '1' ? 'display: none;' : '' ); ?>">
+                                    style="<?php echo esc_attr( isset( $config[ 'enable_auth' ] ) && $config[ 'enable_auth' ] == '0' ? 'display: none;' : '' ); ?>">
                                     <hr />
                                     <h3 class="simplejwt-mt-15"><?php esc_html_e( 'Choose Algorithm', 'simple-jwt-auth' ); ?></h3>
 
@@ -202,8 +202,8 @@
                             </div>
                             <div class="simplejwt-action-area">
                                 <div class="simplejwt-checkbox-wrapper">
-                                    <input class="simplejwt-checkbox-btn" type="checkbox" id="simplejwt_disable_xmlrpc"
-                                        name="simplejwt_disable_xmlrpc" />
+                                    <input type="checkbox" class="simplejwt-checkbox-btn" id="simplejwt_disable_xmlrpc"
+                                        name="simplejwt_disable_xmlrpc" <?php checked( isset( $config[ 'disable_xmlrpc' ] ) && $config[ 'disable_xmlrpc' ] == '1', true ); ?> />
                                 </div>
                             </div>
                         </div>
