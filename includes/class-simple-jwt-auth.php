@@ -130,6 +130,12 @@ class Simple_Jwt_Auth {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-simple-jwt-auth-namespace.php';
 
 		/**
+		 * Class responsible for managing the plugin config data.
+		 * It allows updating or inserting config values into the database.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-simple-jwt-auth-db-manager.php';
+		
+		/**
 		 * The class responsible for encrypting and decrypting the provided data using 
 		 * the OpenSSL AES-256-GCM algorithm.
 		 */
