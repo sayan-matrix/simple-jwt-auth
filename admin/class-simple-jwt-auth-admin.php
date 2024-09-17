@@ -1,5 +1,9 @@
 <?php
 
+/* Require the Crypto and DB Manager library. */
+use Simple_Jwt_Auth\OpenSSL\Crypto;
+use Simple_Jwt_Auth\Database\DBManager;
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -113,7 +117,7 @@ class Simple_Jwt_Auth_Admin {
 
 	public function simplejwt_page_dashboard() {
 		// Fetch the configuration data from the custom table.
-		$config = $this->simplejwt_get_plugin_config();
+		$config = $this->simplejwt_get_plugin_configs();
 
 		// Check and mention the current stack info
 		$versions_info = $this->simplejwt_version_info();
@@ -128,7 +132,7 @@ class Simple_Jwt_Auth_Admin {
 	 * @since	1.0.0
 	 * @return	array
 	 */
-	private function simplejwt_get_plugin_config() {
+	private function simplejwt_get_plugin_configs() {
 		global $wpdb;
 
 		// Set the table name.
@@ -180,22 +184,19 @@ class Simple_Jwt_Auth_Admin {
 			$message = $this->simplejwt_plugin_messages();
 
 			// Checks the all form values.
-			$disable_xmlrpc = isset( $_POST['simplejwt_disable_xmlrpc'] ) ? true : false;
-			$enable_jwt     = isset( $_POST['simplejwt_enable_jwt'] ) ? true : false;
+			$disable_xmlrpc = isset( $_POST['simplejwt_disable_xmlrpc'] ) ? filter_var( $_POST['simplejwt_disable_xmlrpc'], FILTER_VALIDATE_BOOLEAN ) : false;
+			$enable_auth    = isset( $_POST['simplejwt_enable_auth'] ) ? filter_var( $_POST['simplejwt_enable_auth'], FILTER_VALIDATE_BOOLEAN ) : false;
 			$algorithm      = isset( $_POST['simplejwt_algorithm'] ) ? sanitize_text_field( wp_unslash( $_POST['simplejwt_algorithm'] ) ) : 'HS256';
 			$secret_key     = isset( $_POST['simplejwt_secret_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_secret_key'] ) ) : '';
 			$private_key    = isset( $_POST['simplejwt_private_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_private_key'] ) ) : '';
     		$public_key     = isset( $_POST['simplejwt_public_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_public_key'] ) ) : '';
 
 			// Send error response if the algorithms not matched.
-			if ( !empty( $algorithm ) ) {
-				if ( !in_array( $algorithm, $this->supported_algos ) ) {
-					$this->simplejwt_admin_redirect( false, $message->unsuppoted_algo );
-				}
+			if ( !empty( $algorithm ) && !in_array( $algorithm, $this->supported_algos ) ) {
+				$this->simplejwt_admin_redirect( false, $message->unsuppoted_algo );
 			}
 
-			// 
-			if ( $enable_jwt ) {
+			if ( $enable_auth ) {
 				// Checks if algorithm is HS256, HS384, or HS512 and if secret key is empty.
 				if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) && empty( $secret_key ) ) {
 					$this->simplejwt_admin_redirect( false, $message->empty_secret_key );
@@ -213,22 +214,66 @@ class Simple_Jwt_Auth_Admin {
 				}
 			}
 
+			// Checks for a valid private key using OpenSSL.
+			if ( !empty( $private_key ) && !openssl_pkey_get_private( $private_key ) ) {
+				$this->simplejwt_admin_redirect( false, $message->invalid_private_key );
+			}
+
 			// Checks for a valid public key using OpenSSL.
-			if ( !empty( $public_key ) ) {
-				if ( !openssl_pkey_get_public( $public_key ) ) {
-					$this->simplejwt_admin_redirect( false, $message->invalid_public_key );
+			if ( !empty( $public_key ) && !openssl_pkey_get_public( $public_key ) ) {
+				$this->simplejwt_admin_redirect( false, $message->invalid_public_key );
+			}
+
+			// Encrypt sensitive keys.
+			if ( !empty( $secret_key ) ) {
+				$secret_key = Crypto::encrypt( $secret_key );
+
+				if ( is_wp_error( $secret_key ) ) {
+					// Get the error message.
+					$error_message = $secret_key->get_error_message();
+					$this->simplejwt_admin_redirect( false, $error_message );
 				}
 			}
 
-			// Checks for a valid private key using OpenSSL.
 			if ( !empty( $private_key ) ) {
-				if ( !openssl_pkey_get_private( $private_key ) ) {
-					$this->simplejwt_admin_redirect( false, $message->invalid_private_key );
+				$private_key = Crypto::encrypt( $private_key );
+
+				if ( is_wp_error( $private_key ) ) {
+					// Get the error message.
+					$error_message = $private_key->get_error_message();
+					$this->simplejwt_admin_redirect( false, $error_message );
 				}
+			}
+
+			if ( !empty( $public_key ) ) {
+				$public_key = Crypto::encrypt( $public_key );
+
+				if ( is_wp_error( $public_key ) ) {
+					// Get the error message.
+					$error_message = $public_key->get_error_message();
+					$this->simplejwt_admin_redirect( false, $error_message );
+				}
+			}
+
+			// Prepare the data for store in database.
+			$configs = [
+				'algorithm'      => $algorithm,
+				'enable_auth'    => $enable_auth ? '1' : '0',
+				'secret_key'     => $secret_key ? $secret_key : '',
+				'private_key'    => $private_key ? $private_key: '',
+				'public_key'     => $public_key ? $public_key : '',
+				'disable_xmlrpc' => $disable_xmlrpc ? '1' : '0',
+			];
+
+			// Initiate the DBManager class to update the config data.
+			$update_config = DBManager::save_config( $configs );
+
+			if ( $update_config === true ) {
+				$this->simplejwt_admin_redirect( true, $message->success );
 			}
 	
 			// Redirect the user to the appropriate page,
-			$this->simplejwt_admin_redirect( true, $message->success );
+			$this->simplejwt_admin_redirect( false, $message->unknown_error );
 		} else {
 			wp_die(
 				esc_html__( 'Invalid nonce specified!', 'simple-jwt-auth' ),
