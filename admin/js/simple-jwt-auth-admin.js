@@ -68,12 +68,12 @@
 	});
 
 	$(function () {
-		var jwtCheckbox = $('#simplejwt_enable_jwt');
+		var jwtCheckbox = $('#simplejwt_enable_auth');
 		var parentClass = '.simplejwt-key-area';
 		var targetClass = '.simplejwt-key-wrapper';
 
 		simpleJwtFunc.updateAuthSec(jwtCheckbox, targetClass, parentClass);
-		$('#simplejwt_enable_jwt').on('change', function (e) {
+		$('#simplejwt_enable_auth').on('change', function (e) {
 			e.preventDefault();
 			simpleJwtFunc.updateAuthSec(jwtCheckbox, targetClass, parentClass);
 		});
