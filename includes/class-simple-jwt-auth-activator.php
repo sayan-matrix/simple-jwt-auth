@@ -6,6 +6,7 @@
  * This class defines all code necessary to run during the plugin's activation.
  * The primary work of the function is to create and migrate the default JWT 
  * config options into your WordPress database.
+ * 
  * @link       https://github.com/sayandey18
  * @since      1.0.0
  * 
@@ -97,7 +98,7 @@ class Simple_Jwt_Auth_Activator {
 			['config_name' => 'secret_key', 'config_value' => ''],
 			['config_name' => 'public_key', 'config_value' => ''],
             ['config_name' => 'private_key', 'config_value' => ''],
-            ['config_name' => 'disable_jwt', 'config_value' => '1'],
+            ['config_name' => 'enable_auth', 'config_value' => '0'],
 			['config_name' => 'disable_xmlrpc', 'config_value' => '0'],
             ['config_name' => 'supported_algo', 'config_value' => $supported_algo]
 		];
