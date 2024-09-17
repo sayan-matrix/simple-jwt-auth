@@ -1,8 +1,9 @@
 <?php
 
-/* Require Firebase JWT library. */
+/* Require the Firebase JWT and Crypto library. */
 use Simple_Jwt_Auth\Firebase\JWT\JWT;
 use Simple_Jwt_Auth\Firebase\JWT\Key;
+use Simple_Jwt_Auth\OpenSSL\Crypto;
 
 /**
  * The public-facing functionality of the plugin.
@@ -12,7 +13,7 @@ use Simple_Jwt_Auth\Firebase\JWT\Key;
  * @since      1.0.0
  *
  * @package    Simple_Jwt_Auth
- * @subpackage Simple_Jwt_Auth/public
+ * @subpackage Simple_Jwt_Auth/public/endpoints
  * @author     Sayan Dey <mr.sayandey18@outlook.com>
  */
 
@@ -124,9 +125,6 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
      * 
     */
     public function simplejwt_generate_token( WP_REST_Request $request ) {
-		// Initiate the `AES-256-GCM` crypto class.
-		$crypto = new Simple_Jwt_Auth_Crypto();
-
 		// Get defined algorithm from the database.
         $algorithm = $this->simplejwt_get_algorithm();
         
@@ -153,8 +151,8 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
             }
 
 			// Decrypt the secret key using `AES-256-GCM` algo.
-			$secret_key = $crypto->decrypt( 
-				sanitize_textarea_field( $signing_key ) 
+			$secret_key = Crypto::decrypt(
+				sanitize_textarea_field( $signing_key )
 			);
 
             // Generate JWT token using authentication.
@@ -173,8 +171,8 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
             }
 
 			// Decrypt the private key using `AES-256-GCM` algo.
-			$private_key = $crypto->decrypt( 
-				sanitize_textarea_field( $signing_key ) 
+			$private_key = Crypto::decrypt(
+				sanitize_textarea_field( $signing_key )
 			);
 
 			// Generate JWT token using authentication.
@@ -249,10 +247,20 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 			);
 		}
 
-		if( $algorithm === 'HS256' || $algorithm === 'HS384' || $algorithm === 'HS512' ) {
+		if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
 			$signing_key = $this->simplejwt_get_plugin_config( 'secret_key' ) ?? false;
+			if ( $signing_key ) {
+				$signing_key = sanitize_textarea_field(
+					Crypto::decrypt( $signing_key )
+				);
+			}
 		} else {
 			$signing_key = $this->simplejwt_get_plugin_config( 'public_key' ) ?? false;
+			if ( $signing_key ) {
+				$signing_key = sanitize_textarea_field(
+					Crypto::decrypt( $signing_key )
+				);
+			}
 		}
 
 		// If the signing key is not present return error.
@@ -269,7 +277,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 			$decoded_token = JWT::decode( $jwt_token, new Key( $signing_key, $algorithm ) );
 
 			// Validate the issuer from decoded token.
-			if ( $decoded_token->iss !== get_bloginfo( 'url' ) ) {
+			if ( $decoded_token->iss !== $this->simplejwt_get_iss() ) {
 				return new WP_Error(
 					'simplejwt_bad_issuer',
 					'The issuer does not match with this server',
@@ -382,6 +390,16 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		return $request;
 	}
 
+	/**
+	 * Defined the token issuer (iss) filter hook.
+	 * 
+	 * @since	1.0.0
+	 * @return	string
+	 */
+	private function simplejwt_get_iss() {
+		return apply_filters( 'simplejwt_auth_iss', get_bloginfo( 'url' ) );
+	}
+
     /**
 	 * Get the algorithm used to sign the token from database and validate
 	 * that the algorithm is in the supported list.
@@ -444,14 +462,14 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		}
 
         // If the user validated create according JWT Token.
-		$issuedAt  = time();
-		$notBefore = apply_filters( 'simplejwt_auth_not_before', $issuedAt, $issuedAt );
-		$expire    = apply_filters( 'simplejwt_auth_expire', $issuedAt + ( DAY_IN_SECONDS * 7 ), $issuedAt );
+		$issued_at  = time();
+		$not_before = apply_filters( 'simplejwt_auth_not_before', $issued_at, $issued_at );
+		$expire     = apply_filters( 'simplejwt_auth_expire', $issued_at + ( DAY_IN_SECONDS * 7 ), $issued_at );
 
 		$payload = [
-			'iss'  => get_bloginfo( 'url' ),
-			'iat'  => $issuedAt,
-			'nbf'  => $notBefore,
+			'iss'  => $this->simplejwt_get_iss(),
+			'iat'  => $issued_at,
+			'nbf'  => $not_before,
 			'exp'  => $expire,
 			'data' => [
 				'user' => [
