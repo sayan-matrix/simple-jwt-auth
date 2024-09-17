@@ -1,5 +1,8 @@
 <?php
 
+/* The namespace to avoid class name collisions. */
+namespace Simple_Jwt_Auth\OpenSSL;
+
 /**
  * Handles encryption and decryption of data using AES-256-GCM.
  * 
@@ -11,10 +14,10 @@
  * @since      1.0.0
  * 
  * @package    Simple_Jwt_Auth
- * @subpackage Simple_Jwt_Auth/includes/crypto
+ * @subpackage Simple_Jwt_Auth\OpenSSL
  * @author     Sayan Dey <mr.sayandey18@outlook.com>
  */
-class Simple_Jwt_Auth_Crypto {
+class Crypto {
     public function __construct() {
         // Constructor code if needed
     }
@@ -34,7 +37,7 @@ class Simple_Jwt_Auth_Crypto {
 		if ( !$secret ) {
 			return new WP_Error(
 				'simplejwt_auth_bad_config',
-				'Encryption key is not configured properly, please contact the admin',
+				__( 'Encryption key is not configured properly.', 'simple-jwt-auth' ),
 				['status' => 403]
 			);
 		}
@@ -51,7 +54,7 @@ class Simple_Jwt_Auth_Crypto {
 		if ( $encrypted === false ) {
 			return new WP_Error(
 				'simplejwt_auth_encryption_failed',
-				'Encryption process failed, please contact the admin',
+				__( 'Encryption process failed, contact admin.', 'simple-jwt-auth' ),
 				['status' => 500]
 			);
 		}
@@ -75,7 +78,7 @@ class Simple_Jwt_Auth_Crypto {
 		if ( !$secret ) {
 			return new WP_Error(
 				'simplejwt_auth_bad_config',
-				'Encryption key is not configured properly, please contact the admin',
+				__( 'Encryption key is not configured properly.', 'simple-jwt-auth' ),
 				['status' => 403]
 			);
 		}
@@ -96,7 +99,7 @@ class Simple_Jwt_Auth_Crypto {
 		if ( $decrypted === false ) {
 			return new WP_Error(
 				'simplejwt_auth_decryption_failed',
-				'Decryption process failed, please contact the admin',
+				__( 'Decryption process failed, contact admin.', 'simple-jwt-auth' ),
 				['status' => 500]
 			);
 		}
