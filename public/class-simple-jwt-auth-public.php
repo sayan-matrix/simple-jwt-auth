@@ -3,18 +3,11 @@
 /**
  * The public-facing functionality of the plugin.
  *
- * @link       https://github.com/sayandey18
- * @since      1.0.0
- *
- * @package    Simple_Jwt_Auth
- * @subpackage Simple_Jwt_Auth/public
- */
-
-/**
- * The public-facing functionality of the plugin.
- *
  * Defines the plugin name, version, and two examples hooks for how to
  * enqueue the public-facing stylesheet and JavaScript.
+ * 
+ * @link       https://github.com/sayandey18
+ * @since      1.0.0
  *
  * @package    Simple_Jwt_Auth
  * @subpackage Simple_Jwt_Auth/public
