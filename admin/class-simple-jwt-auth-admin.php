@@ -3,6 +3,7 @@
 /* Require the Crypto and DB Manager library. */
 use Simple_Jwt_Auth\OpenSSL\Crypto;
 use Simple_Jwt_Auth\Database\DBManager;
+use Simple_Jwt_Auth\Notice\JWTNotice;
 
 /**
  * The admin-specific functionality of the plugin.
@@ -52,18 +53,10 @@ class Simple_Jwt_Auth_Admin {
 	 * @see     https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40
      */
     private array $supported_algos = [
-		'HS256',
-		'HS384',
-		'HS512',
-		'RS256',
-		'RS384',
-		'RS512',
-		'ES256',
-		'ES384',
-		'ES512',
-		'PS256',
-		'PS384',
-		'PS512'
+		'HS256', 'HS384', 'HS512', 
+		'RS256', 'RS384', 'RS512', 
+		'ES256', 'ES384', 'ES512', 
+		'PS256', 'PS384', 'PS512'
 	];
 
 	/**
@@ -105,17 +98,44 @@ class Simple_Jwt_Auth_Admin {
 		// Call the `simplejwt_menu_icon()` method to get the base64 SVG
 		$svg_icon = $this->simplejwt_menu_icon();
 
+		// Add the main menu.
 		add_menu_page( 
 			__( 'Simple JWT Auth', 'simple-jwt-auth' ),
 			__( 'JWT Auth', 'simple-jwt-auth' ),
 			'manage_options',
 			'simple-jwt-auth',
-			array( $this, 'simplejwt_page_dashboard' ),
+			'',
 			$svg_icon
+		);
+
+		// Add "Settings" as the first submenu and default page.
+		add_submenu_page(
+			'simple-jwt-auth',
+			__( 'JWT Auth Settings', 'simple-jwt-auth' ),
+			__( 'Settings', 'simple-jwt-auth' ),
+			'manage_options',
+			'simple-jwt-auth',
+			array( $this, 'simplejwt_page_settings' ),
+		);
+
+		// Add "Options" as a second submenu.
+		add_submenu_page(
+			'simple-jwt-auth',
+			__( 'JWT Auth Options', 'simple-jwt-auth' ),
+			__( 'Options', 'simple-jwt-auth' ),
+			'manage_options',
+			'simple-jwt-auth-options',
+			array( $this, 'simplejwt_page_option' ),
 		);
 	}
 
-	public function simplejwt_page_dashboard() {
+	/**
+	 * Callback function for the "Settings" submenu page of the plugin.
+	 * 
+	 * @since	1.0.0
+	 * @return	void
+	 */
+	public function simplejwt_page_settings() {
 		// Fetch the configuration data from the custom table.
 		$config = $this->simplejwt_get_plugin_configs();
 
@@ -123,7 +143,37 @@ class Simple_Jwt_Auth_Admin {
 		$versions_info = $this->simplejwt_version_info();
 
 		// Include the template file and pass the config data.
-		include plugin_dir_path( __FILE__ ) . 'partials/simple-jwt-auth-admin-display.php';
+		include plugin_dir_path( __FILE__ ) . 'partials/simple-jwt-auth-admin-settings.php';
+	}
+
+	/**
+	 * Callback function for the "Options" submenu page of the plugin.
+	 * 
+	 * @since	1.0.0
+	 * @return	void
+	 */
+	public function simplejwt_page_option() {
+		// Include the template file and pass the config data.
+		include plugin_dir_path( __FILE__ ) . 'partials/simple-jwt-auth-admin-options.php';
+	}
+
+	/**
+	 * Adds Settings link to the plugin action links on plugin page.
+	 * 
+	 * @since	1.0.0
+	 * @param	array $links Array of action links related to the plugin.
+	 * @return	array Modified array of links.
+	 */
+	public function simplejwt_quick_links( array $links ) {
+		// Create the URL for the settings page.
+		$links['settings'] = sprintf(
+			'<a href="%s" aria-label="%s">%s</a>',
+			admin_url( 'admin.php?page=simple-jwt-auth' ),
+			esc_attr__( 'Go to JWT Settings page', 'simple-jwt-auth' ),
+			esc_html__( 'Settings', 'simple-jwt-auth' )
+		);
+
+		return $links;
 	}
 
 	/**
@@ -180,12 +230,11 @@ class Simple_Jwt_Auth_Admin {
 	 */
 	public function simplejwt_settings_callback() {
 		if ( isset( $_POST['simplejwt_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['simplejwt_nonce'] ) ), 'simplejwt_nonce' ) ) {
-			// Initialize the `simplejwt_plugin_messages()` for admin message.
-			$message = $this->simplejwt_plugin_messages();
 
 			// Checks the all form values.
-			$disable_xmlrpc = isset( $_POST['simplejwt_disable_xmlrpc'] ) ? filter_var( $_POST['simplejwt_disable_xmlrpc'], FILTER_VALIDATE_BOOLEAN ) : false;
-			$enable_auth    = isset( $_POST['simplejwt_enable_auth'] ) ? filter_var( $_POST['simplejwt_enable_auth'], FILTER_VALIDATE_BOOLEAN ) : false;
+			$enable_auth    = isset( $_POST['simplejwt_enable_auth'] ) ? filter_var( wp_unslash( $_POST['simplejwt_enable_auth'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+			$enable_cors    = isset( $_POST['simplejwt_enable_cors'] ) ? filter_var( wp_unslash( $_POST['simplejwt_enable_cors'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+			$disable_xmlrpc = isset( $_POST['simplejwt_disable_xmlrpc'] ) ? filter_var( wp_unslash( $_POST['simplejwt_disable_xmlrpc'] ), FILTER_VALIDATE_BOOLEAN ) : false;
 			$algorithm      = isset( $_POST['simplejwt_algorithm'] ) ? sanitize_text_field( wp_unslash( $_POST['simplejwt_algorithm'] ) ) : 'HS256';
 			$secret_key     = isset( $_POST['simplejwt_secret_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_secret_key'] ) ) : '';
 			$private_key    = isset( $_POST['simplejwt_private_key'] ) ? sanitize_textarea_field( wp_unslash( $_POST['simplejwt_private_key'] ) ) : '';
@@ -193,35 +242,35 @@ class Simple_Jwt_Auth_Admin {
 
 			// Send error response if the algorithms not matched.
 			if ( !empty( $algorithm ) && !in_array( $algorithm, $this->supported_algos ) ) {
-				$this->simplejwt_admin_redirect( false, $message->unsuppoted_algo );
+				$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'unsupported_algo' ) );
 			}
 
 			if ( $enable_auth ) {
 				// Checks if algorithm is HS256, HS384, or HS512 and if secret key is empty.
 				if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) && empty( $secret_key ) ) {
-					$this->simplejwt_admin_redirect( false, $message->empty_secret_key );
+					$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'empty_secret_key' ) );
 				}
 
 				// If the algorithm is not HS*, check for public and private keys.
 				if ( !in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
 					if ( empty( $private_key ) ) {
-						$this->simplejwt_admin_redirect( false, $message->empty_private_key );
+						$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'empty_private_key' ) );
 					}
 
 					if ( empty( $public_key ) ) {
-						$this->simplejwt_admin_redirect( false, $message->empty_public_key );
+						$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'empty_public_key' ) );
 					}
 				}
 			}
 
 			// Checks for a valid private key using OpenSSL.
 			if ( !empty( $private_key ) && !openssl_pkey_get_private( $private_key ) ) {
-				$this->simplejwt_admin_redirect( false, $message->invalid_private_key );
+				$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'invalid_private_key' ) );
 			}
 
 			// Checks for a valid public key using OpenSSL.
 			if ( !empty( $public_key ) && !openssl_pkey_get_public( $public_key ) ) {
-				$this->simplejwt_admin_redirect( false, $message->invalid_public_key );
+				$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'invalid_public_key' ) );
 			}
 
 			// Encrypt sensitive keys.
@@ -262,6 +311,7 @@ class Simple_Jwt_Auth_Admin {
 				'secret_key'     => $secret_key ? $secret_key : '',
 				'private_key'    => $private_key ? $private_key: '',
 				'public_key'     => $public_key ? $public_key : '',
+				'enable_cors'    => $enable_cors ? '1' : '0', 
 				'disable_xmlrpc' => $disable_xmlrpc ? '1' : '0',
 			];
 
@@ -269,11 +319,11 @@ class Simple_Jwt_Auth_Admin {
 			$update_config = DBManager::save_config( $configs );
 
 			if ( $update_config === true ) {
-				$this->simplejwt_admin_redirect( true, $message->success );
+				$this->simplejwt_admin_redirect( true, JWTNotice::get_notice( 'success' ) );
 			}
 	
 			// Redirect the user to the appropriate page,
-			$this->simplejwt_admin_redirect( false, $message->unknown_error );
+			$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'unknown_error' ) );
 		} else {
 			wp_die(
 				esc_html__( 'Invalid nonce specified!', 'simple-jwt-auth' ),
@@ -348,6 +398,34 @@ class Simple_Jwt_Auth_Admin {
 	}
 
 	/**
+	 * Check if XML-RPC should be disabled based on the configuration.
+	 * 
+	 * @since	1.0.0
+	 * @param	bool $enabled The current XML-RPC enabled/disabled state.
+	 * @return	bool Whether XML-RPC is enabled (true) or disabled (false).
+	 */
+	public function simplejwt_disable_xmlrpc( bool $enabled ) {
+		// If XML-RPC is already disabled return state.
+		if ( $enabled === false ) {
+			return false;
+		}
+
+		// Get the XML-RPC status from database.
+		$disable_xmlrpc = filter_var(
+			DBManager::get_config( 'disable_xmlrpc' ),
+			FILTER_VALIDATE_BOOLEAN
+		);
+
+		// If $disable_xmlrpc is true, disable XML-RPC.
+		if ( $disable_xmlrpc === true ) {
+			return false; // Disable XML-RPC
+		}
+	
+		// Otherwise, return the current $enabled state.
+		return $enabled;
+	}
+
+	/**
 	 * Function to check current WordPress and PHP version and notify the
 	 * admin users if there is updated/recommended version is available.
 	 * 
@@ -392,27 +470,6 @@ class Simple_Jwt_Auth_Admin {
 	}
 
 	/**
-	 * Set plugin messages for success, error and validation.
-	 * 
-	 * @since	1.0.0
-	 * @return	object
-	 */
-	private function simplejwt_plugin_messages() { 
-		$messages = new stdClass();
-		$messages->error               = __( 'Settings save failed!', 'simple-jwt-auth' );
-		$messages->success             = __( 'Settings saved successfully', 'simple-jwt-auth' );
-		$messages->unknown_error       = __( 'Something went wrong, try again', 'simple-jwt-auth' );
-		$messages->unsupported_algo    = __( 'Unsupported algorithm', 'simple-jwt-auth' );
-		$messages->empty_secret_key	   = __( 'Secret key is missing', 'simple-jwt-auth' );
-		$messages->empty_public_key	   = __( 'Public key is missing', 'simple-jwt-auth' );
-		$messages->empty_private_key   = __( 'Private key is missing', 'simple-jwt-auth' );
-		$messages->invalid_private_key = __( 'Invalid private key format', 'simple-jwt-auth' );
-		$messages->invalid_public_key  = __( 'Invalid public key format', 'simple-jwt-auth' );
-	
-		return $messages;
-	}
-
-	/**
 	 * Set SVG icon fo the plugin admin menu.
 	 * 
 	 * @since	1.0.0
@@ -421,7 +478,7 @@ class Simple_Jwt_Auth_Admin {
 	 * @return	string
 	 */
 	private function simplejwt_menu_icon( $base64 = true ) {
-		$svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#a7aaad" d="M10.2 0v6.456L12 8.928l1.8-2.472V0zm3.6 6.456v3.072l2.904-.96L20.52 3.36l-2.928-2.136zm2.904 2.112-1.8 2.496 2.928.936 6.144-1.992-1.128-3.432zM17.832 12l-2.928.936 1.8 2.496 6.144 1.992 1.128-3.432zm-1.128 3.432-2.904-.96v3.072l3.792 5.232 2.928-2.136zM13.8 17.544 12 15.072l-1.8 2.472V24h3.6zm-3.6 0v-3.072l-2.904.96L3.48 20.64l2.928 2.136zm-2.904-2.112 1.8-2.496L6.168 12 .024 13.992l1.128 3.432zM6.168 12l2.928-.936-1.8-2.496-6.144-1.992-1.128 3.432zm1.128-3.432 2.904.96V6.456L6.408 1.224 3.48 3.36z"></path></svg>';
+		$svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1.92 -1.92 27.84 27.84" width="256" height="256"><path fill="#a7aaad" d="M10.2 0v6.456L12 8.928l1.8-2.472V0zm3.6 6.456v3.072l2.904-.96L20.52 3.36l-2.928-2.136zm2.904 2.112-1.8 2.496 2.928.936 6.144-1.992-1.128-3.432zM17.832 12l-2.928.936 1.8 2.496 6.144 1.992 1.128-3.432zm-1.128 3.432-2.904-.96v3.072l3.792 5.232 2.928-2.136zM13.8 17.544 12 15.072l-1.8 2.472V24h3.6zm-3.6 0v-3.072l-2.904.96L3.48 20.64l2.928 2.136zm-2.904-2.112 1.8-2.496L6.168 12 .024 13.992l1.128 3.432zM6.168 12l2.928-.936-1.8-2.496-6.144-1.992-1.128 3.432zm1.128-3.432 2.904.96V6.456L6.408 1.224 3.48 3.36z"></path></svg>';
 
 		if ( $base64 ) {
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- This encoding is intended.

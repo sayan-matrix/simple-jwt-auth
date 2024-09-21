@@ -79,4 +79,35 @@ class DBManager {
 
         return true;
     }
+
+    /**
+     * Read the `{wp_prefix}_simplejwt_config` table and return the
+     * config value to used in authenticate.
+     * 
+     * @since   1.0.0
+	 * @param	string $config_name
+     * @return	string|false
+     */
+    public static function get_config( string $config_name ) {
+        global $wpdb;
+
+        // Set the table name.
+		$table_name = $wpdb->prefix . 'simplejwt_config';
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+        $result = $wpdb->get_var( 
+            $wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                "SELECT config_value FROM {$table_name} WHERE config_name = %s",
+                $config_name
+            )
+        );
+
+        // Check if the result is null return false.
+        if ( is_null( $result ) ) {
+            return false;
+        }
+
+        return $result;
+    }
 }
