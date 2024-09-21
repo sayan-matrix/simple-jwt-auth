@@ -130,10 +130,15 @@ class Simple_Jwt_Auth {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-simple-jwt-auth-namespace.php';
 
 		/**
+		 * The class is responsible for managing all plugin-related notices.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-simple-jwt-auth-notice.php';
+
+		/**
 		 * Class responsible for managing the plugin config data.
 		 * It allows updating or inserting config values into the database.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-simple-jwt-auth-db-manager.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/database/class-simple-jwt-auth-dbmanager.php';
 		
 		/**
 		 * The class responsible for encrypting and decrypting the provided data using 
@@ -179,15 +184,15 @@ class Simple_Jwt_Auth {
 	 * @access	private
 	 */
 	private function define_admin_hooks() {
-
 		$plugin_admin = new Simple_Jwt_Auth_Admin( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'simplejwt_admin_menus' );
-		$this->loader->add_filter( 'admin_body_class', $plugin_admin, 'simplejwt_admin_body_classes' );
 		$this->loader->add_action( 'admin_post_simplejwt_settings_action', $plugin_admin, 'simplejwt_settings_callback');
+		$this->loader->add_filter( 'xmlrpc_enabled', $plugin_admin, 'simplejwt_disable_xmlrpc' );
+		$this->loader->add_filter( 'admin_body_class', $plugin_admin, 'simplejwt_admin_body_classes' );
+		$this->loader->add_filter( 'plugin_action_links_' . SIMPLE_JWT_AUTH_BASENAME, $plugin_admin, 'simplejwt_quick_links' );
 	}
 
 	/**
@@ -201,6 +206,7 @@ class Simple_Jwt_Auth {
 		$plugin_public = new Simple_Jwt_Auth_Public( $this->get_plugin_name(), $this->get_version() );
 
 		$plugin_auth_public = new Simple_Jwt_Auth_Auth( $this->get_plugin_name(), $this->get_version(), $this->get_endpoint() );
+
 		$this->loader->add_action( 'rest_api_init', $plugin_auth_public, 'simplejwt_add_api_routes' );
 		$this->loader->add_filter( 'rest_api_init', $plugin_auth_public, 'simplejwt_add_cors_support' );
 		$this->loader->add_filter( 'rest_pre_dispatch', $plugin_auth_public, 'simplejwt_rest_pre_dispatch', 10, 2 );
