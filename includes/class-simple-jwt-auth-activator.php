@@ -17,8 +17,8 @@
 class Simple_Jwt_Auth_Activator {
 	public static function activate() {
 		// Init the private function.
-		self::simplejwt_create_table();
-		self::simplejwt_migrate_table();
+		self::create_table();
+		self::migrate_table();
 	}
 
 	/**
@@ -27,7 +27,7 @@ class Simple_Jwt_Auth_Activator {
      * 
      * @since   1.0.0
      */
-	private static function simplejwt_create_table() {
+	private static function create_table() {
 		global $wpdb;
 
         // Include the WordPress upgrade file for dbDelta function.
@@ -64,7 +64,7 @@ class Simple_Jwt_Auth_Activator {
      * 
      * @since   1.0.0
      */
-	private static function simplejwt_migrate_table() {
+	private static function migrate_table() {
 		global $wpdb;
 
         // Set the table name.
@@ -94,11 +94,12 @@ class Simple_Jwt_Auth_Activator {
 
         // Default config to insert.
         $default_config = [
+            ['config_name' => 'enable_auth', 'config_value' => '0'],
 			['config_name' => 'algorithm', 'config_value' => 'HS256'],
 			['config_name' => 'secret_key', 'config_value' => ''],
 			['config_name' => 'public_key', 'config_value' => ''],
             ['config_name' => 'private_key', 'config_value' => ''],
-            ['config_name' => 'enable_auth', 'config_value' => '0'],
+            ['config_name' => 'enable_cors', 'config_value' => '0'],
 			['config_name' => 'disable_xmlrpc', 'config_value' => '0'],
             ['config_name' => 'supported_algo', 'config_value' => $supported_algo]
 		];
