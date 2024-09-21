@@ -38,6 +38,7 @@ define( 'SIMPLE_JWT_AUTH_VERSION', '1.0.0' );
  */
 define( 'SIMPLE_JWT_AUTH_ENDPOINT', 'wp-jwt' );
 define( 'SIMPLE_JWT_AUTH_TEXT_DOMAIN', 'simple-jwt-auth' );
+define( 'SIMPLE_JWT_AUTH_BASENAME', plugin_basename( __FILE__ ) );
 
 /**
  * The code that runs during plugin activation.
