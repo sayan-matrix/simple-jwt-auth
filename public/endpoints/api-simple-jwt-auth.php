@@ -3,7 +3,9 @@
 /* Require the Firebase JWT and Crypto library. */
 use Simple_Jwt_Auth\Firebase\JWT\JWT;
 use Simple_Jwt_Auth\Firebase\JWT\Key;
+use Simple_Jwt_Auth\Database\DBManager;
 use Simple_Jwt_Auth\OpenSSL\Crypto;
+use Simple_Jwt_Auth\Notice\JWTNotice;
 
 /**
  * The public-facing functionality of the plugin.
@@ -59,18 +61,10 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 * @see     https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40
      */
     private array $supported_algos = [
-		'HS256',
-		'HS384',
-		'HS512',
-		'RS256',
-		'RS384',
-		'RS512',
-		'ES256',
-		'ES384',
-		'ES512',
-		'PS256',
-		'PS384',
-		'PS512'
+		'HS256', 'HS384', 'HS512', 
+		'RS256', 'RS384', 'RS512', 
+		'ES256', 'ES384', 'ES512', 
+		'PS256', 'PS384', 'PS512'
 	];
 
     /**
@@ -89,26 +83,39 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 
     /**
 	 * Add the endpoints to the API
+	 * 
+	 * @since	1.0.0
 	 */
 	public function simplejwt_add_api_routes() {
-		register_rest_route( $this->endpoint, 'token', array(
-            'methods'             => 'POST',
-			'callback'            => array( $this, 'simplejwt_generate_token' ),
-			'permission_callback' => '__return_true',
-        ) );
+		register_rest_route( $this->endpoint, 'token', 
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'simplejwt_generate_token' ),
+				'permission_callback' => '__return_true',
+			) 
+		);
 
-		register_rest_route( $this->endpoint, 'token/validate', array(
-            'methods'             => 'POST',
-			'callback'            => array( $this, 'simplejwt_validate_token' ),
-			'permission_callback' => '__return_true',
-        ) );
+		register_rest_route( $this->endpoint, 'token/validate', 
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'simplejwt_validate_token' ),
+				'permission_callback' => '__return_true',
+			) 
+		);
 	}
 
     /**
-	 * Add CORs support to the request.
+	 * Add CORS support to the request.
+	 * 
+	 * @since	1.0.0
 	 */
 	public function simplejwt_add_cors_support() {
-		$enable_cors = defined( 'SIMPLE_JWT_AUTH_CORS_ENABLE' ) && SIMPLE_JWT_AUTH_CORS_ENABLE;
+		// Check the CORS status from database.
+		$enable_cors = filter_var( 
+			DBManager::get_config( 'enable_cors' ),
+			FILTER_VALIDATE_BOOLEAN 
+		);
+
 		if ( $enable_cors ) {
 			$headers = apply_filters( 'simplejwt_cors_allow_headers',
 				'Access-Control-Allow-Headers, Content-Type, Authorization' );
@@ -132,21 +139,21 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
         if ( $algorithm === false ) {
 			return new WP_Error(
 				'simplejwt_unsupported_algorithm',
-				'Algorithm not supported, see https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40',
+				JWTNotice::get_notice( 'unsupported_algorithm' ),
 				['status' => 403]
 			);
 		}
 
 		if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
 			// Get the secret key from database.
-			$signing_key = $this->simplejwt_get_plugin_config( 'secret_key' );
+			$signing_key = DBManager::get_config( 'secret_key' );
 
             // Check the signing key if not exist return an error.
             if ( $signing_key === false ) {
                 return new WP_Error(
-                    'simplejwt_auth_bad_config',
-                    'JWT secret key not configured, please contact the admin',
-                    [ 'status' => 403 ]
+                    'simplejwt_bad_secret_key',
+					JWTNotice::get_notice( 'bad_secret_key' ),
+                    ['status' => 403]
                 );
             }
 
@@ -159,14 +166,14 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
             $response = $this->simplejwt_make_authenticate( $request, $algorithm, $secret_key );
 		} else {
 			// Get the private key from database.
-			$signing_key = $this->simplejwt_get_plugin_config( 'private_key' );
+			$signing_key = DBManager::get_config( 'private_key' );
 
 			// Check the signing key if not exist return an error.
             if ( $signing_key === false ) {
                 return new WP_Error(
-                    'simplejwt_auth_bad_config',
-                    'JWT private key not configured, please contact the admin',
-                    [ 'status' => 403 ]
+                    'simplejwt_bad_private_key',
+					JWTNotice::get_notice( 'bad_private_key' ),
+                    ['status' => 403]
                 );
             }
 
@@ -182,8 +189,8 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		// The token is signed, now create the user object.
 		$user_data = new WP_REST_Response( array(
 			'code'    => 'simplejwt_auth_credential',
-			'message' => 'Token created successfully',
-			'data'    => [ 
+			'message' => JWTNotice::get_notice( 'auth_credential' ),
+			'data'    => [
 				'status'       => 200,
 				'id'           => $response->user->data->ID,
 				'email'        => $response->user->data->user_email,
@@ -219,19 +226,19 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		if ( !$auth_header ) {
 			return new WP_Error(
 				'simplejwt_no_auth_header',
-				'Authorization header not found',
+				JWTNotice::get_notice( 'no_auth_header' ),
 				['status' => 403]
 			);
 		}
 
 		// Extract the authorization header.
-		[ $jwt_token ] = sscanf( $auth_header, 'Bearer %s' );
+		[$jwt_token] = sscanf( $auth_header, 'Bearer %s' );
 
 		// If the format is not valid return an error.
 		if ( !$jwt_token ) {
 			return new WP_Error(
 				'simplejwt_bad_auth_header',
-				'Authorization header malformed.',
+				JWTNotice::get_notice( 'bad_auth_header' ),
 				['status' => 400]
 			);
 		}
@@ -242,20 +249,20 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
         if ( $algorithm === false ) {
 			return new WP_Error(
 				'simplejwt_unsupported_algorithm',
-				'Algorithm not supported, see https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40',
+				JWTNotice::get_notice( 'unsupported_algorithm' ),
 				['status' => 403]
 			);
 		}
 
 		if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
-			$signing_key = $this->simplejwt_get_plugin_config( 'secret_key' ) ?? false;
+			$signing_key = DBManager::get_config( 'secret_key' ) ?? false;
 			if ( $signing_key ) {
 				$signing_key = sanitize_textarea_field(
 					Crypto::decrypt( $signing_key )
 				);
 			}
 		} else {
-			$signing_key = $this->simplejwt_get_plugin_config( 'public_key' ) ?? false;
+			$signing_key = DBManager::get_config( 'public_key' ) ?? false;
 			if ( $signing_key ) {
 				$signing_key = sanitize_textarea_field(
 					Crypto::decrypt( $signing_key )
@@ -267,7 +274,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		if ( !$signing_key ) {
 			return new WP_Error(
 				'simplejwt_bad_config',
-				'JWT is not configured properly, please contact the admin',
+				JWTNotice::get_notice( 'bad_config' ),
 				['status' => 403]
 			);
 		}
@@ -280,7 +287,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 			if ( $decoded_token->iss !== $this->simplejwt_get_iss() ) {
 				return new WP_Error(
 					'simplejwt_bad_issuer',
-					'The issuer does not match with this server',
+					JWTNotice::get_notice( 'bad_issuer' ),
 					['status' => 403]
 				);
 			}
@@ -289,7 +296,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 			if ( !isset( $decoded_token->data->user->id ) ) {
 				return new WP_Error(
 					'simplejwt_bad_request',
-					'User ID not found in the token',
+					JWTNotice::get_notice( 'bad_request' ),
 					['status' => 403]
 				);
 			}
@@ -302,14 +309,14 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 			// Return successful response to `token/validate` endpoint.
 			return new WP_REST_Response( array(
 				'code'    => 'simplejwt_valid_token',
-				'message' => 'Token is valid',
+				'message' => JWTNotice::get_notice( 'valid_token' ),
 				'data'    => ['status' => 200]
 			), 200 );
 		} catch ( Exception $e ) {
 			// Send error if Something were wrong trying to decode the token.
 			return new WP_Error(
 				'simplejwt_invalid_token',
-				$e->getMessage(),
+				wp_strip_all_tags( $e->getMessage() ),
 				['status' => 403]
 			);
 		}
@@ -408,7 +415,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 * @return	string
 	 */
     private function simplejwt_get_algorithm() {
-        $algorithm = $this->simplejwt_get_plugin_config( 'algorithm' );
+		$algorithm = DBManager::get_config( 'algorithm' );
 
         if ( !empty( $algorithm ) ) {
             if ( !in_array( $algorithm, $this->supported_algos ) ) {
@@ -442,9 +449,9 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
         // Check the signing key if not exist return an error.
         if ( $signing_key === false ) {
             return new WP_Error(
-                'simplejwt_auth_bad_config',
-                'JWT signing key not configured, please contact the admin',
-                [ 'status' => 403 ]
+                'simplejwt_bad_signing_key',
+				JWTNotice::get_notice( 'bad_signing_key' ),
+                ['status' => 403]
             );
         }
 
@@ -457,7 +464,9 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
             $error_message = $user->get_error_message();
 
 			return new WP_Error(
-				'simplejwt_' . $error_code, wp_strip_all_tags( $error_message ), [ 'status' => 403 ]
+				'simplejwt_' . $error_code, 
+				wp_strip_all_tags( $error_message ), 
+				['status' => 403]
 			);
 		}
 
@@ -491,36 +500,5 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
         $response->token = $token;
 
         return $response;
-    }
-
-    /**
-     * Read the `{wp_prefix}_simplejwt_config` table and return the
-     * config value to used in authenticate.
-     * 
-     * @since   1.0.0
-	 * @param	string $config_name
-     * @return	string|false
-     */
-    private function simplejwt_get_plugin_config( string $config_name ) {
-        global $wpdb;
-
-        // Set the table name.
-		$table_name = $wpdb->prefix . 'simplejwt_config';
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $result = $wpdb->get_var( 
-            $wpdb->prepare(
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-                "SELECT config_value FROM {$table_name} WHERE config_name = %s",
-                $config_name
-            )
-        );
-
-        // Check if the result is null return false.
-        if ( is_null( $result ) ) {
-            return false;
-        }
-
-        return $result;
     }
 }
