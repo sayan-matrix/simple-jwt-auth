@@ -20,15 +20,19 @@
         <div class="simplejwt-menu-area">
             <ul class="simplejwt-menu-wrapper">
                 <li class="simplejwt-menu-items">
-                    <a href="#">Dashboard</a>
+                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-jwt-auth' ) ); ?>">
+                        <?php esc_html_e( 'JWT Settings', 'simple-jwt-auth' ); ?>
+                    </a>
                 </li>
                 <li class="simplejwt-menu-items">
-                    <a href="#">JWT Settings</a>
+                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-jwt-auth-options' ) ); ?>">
+                        <?php esc_html_e( 'Options', 'simple-jwt-auth' ); ?>
+                    </a>
                 </li>
             </ul>
         </div>
         <div class="simplejwt-logo-area">
-            <img width="144px" height="36px" src="<?php echo esc_attr( plugin_dir_url( __FILE__ ) . '../img/jwt-auth.svg' ); ?>" alt="jwt">
+            <img width="144px" height="36px" src="<?php echo esc_attr( plugin_dir_url( __FILE__ ) . '../img/jwt-auth.svg' ); ?>" alt="jwt" />
         </div>
     </div>
 </div>
@@ -48,7 +52,7 @@
                 <div class="simplejwt-item-card">
                     <div class="simplejwt-card-header simplejwt-mb-15">
                         <div class="simplejwt-stack-heading simplejwt-flex-center">
-                            <img width="30px" height="30px" src="<?php echo esc_attr( plugin_dir_url( __FILE__ ) . '../img/wordpress.svg' ); ?>" alt="wordpress">
+                            <img width="30px" height="30px" src="<?php echo esc_attr( plugin_dir_url( __FILE__ ) . '../img/wordpress.svg' ); ?>" alt="wordpress" />
                             <h3><?php esc_html_e( 'WordPress Version', 'simple-jwt-auth' ); ?></h3>
                         </div>
                         <div class="simplejwt-stack-version">
@@ -70,7 +74,7 @@
                 <div class="simplejwt-item-card">
                     <div class="simplejwt-card-header simplejwt-mb-15">
                         <div class="simplejwt-stack-heading simplejwt-flex-center">
-                            <img width="30px" height="30px" src="<?php echo esc_attr( plugin_dir_url( __FILE__ ) . '../img/php.svg' ); ?>" alt="php">
+                            <img width="30px" height="30px" src="<?php echo esc_attr( plugin_dir_url( __FILE__ ) . '../img/php.svg' ); ?>" alt="php" />
                             <h3><?php esc_html_e( 'PHP Version', 'simple-jwt-auth' ) ?></h3>
                         </div>
                         <div class="simplejwt-stack-version">
@@ -184,6 +188,26 @@
                                     <input type="text" class="simplejwt-endpoint-data" id="simplejwt_validate_token" 
                                     value="https://wp.serverhome.biz/wp-json/wp-jwt/v1/token/validate" readonly disabled />
                                     <span class="simplejwt-copy-btn" data-tooltip="Copied"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="simplejwt-item-card">
+                        <h2><?php esc_html_e( 'CORS Support', 'simple-jwt-auth' ); ?></h2>
+                        <div class="simplejwt-card-header">
+                            <div class="simplejwt-stack-heading">
+                                <h3><?php esc_html_e( 'Enable CORS', 'simple-jwt-auth' ); ?></h3>
+                                <p class="simplejwt-body-desc simplejwt-mt-10">
+                                    <?php esc_html_e( 'CORS is an HTTP-header based mechanism 
+                                    that allows a web page to make requests to a server on a different 
+                                    domain than the one that served the web page.', 'simple-jwt-auth' ); ?>
+                                </p>
+                            </div>
+                            <div class="simplejwt-action-area">
+                                <div class="simplejwt-checkbox-wrapper">
+                                    <input type="checkbox" class="simplejwt-checkbox-btn" id="simplejwt_enable_cors"
+                                        name="simplejwt_enable_cors" <?php checked( isset( $config[ 'enable_cors' ] ) && $config[ 'enable_cors' ] == '1', true ); ?> />
                                 </div>
                             </div>
                         </div>
