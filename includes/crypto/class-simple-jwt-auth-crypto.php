@@ -3,6 +3,10 @@
 /* The namespace to avoid class name collisions. */
 namespace Simple_Jwt_Auth\OpenSSL;
 
+/* Used the required class and library. */
+use Simple_Jwt_Auth\Notice\JWTNotice;
+use WP_Error;
+
 /**
  * Handles encryption and decryption of data using AES-256-GCM.
  * 
@@ -36,8 +40,8 @@ class Crypto {
 		// Check the encryption key, if not exists return an error.
 		if ( !$secret ) {
 			return new WP_Error(
-				'simplejwt_auth_bad_config',
-				__( 'Encryption key is not configured properly.', 'simple-jwt-auth' ),
+				'simplejwt_bad_encryption_key',
+				JWTNotice::get_notice( 'bad_encryption_key' ),
 				['status' => 403]
 			);
 		}
@@ -53,8 +57,8 @@ class Crypto {
 
 		if ( $encrypted === false ) {
 			return new WP_Error(
-				'simplejwt_auth_encryption_failed',
-				__( 'Encryption process failed, contact admin.', 'simple-jwt-auth' ),
+				'simplejwt_encryption_failed',
+				JWTNotice::get_notice( 'encryption_failed' ),
 				['status' => 500]
 			);
 		}
@@ -77,8 +81,8 @@ class Crypto {
 		// Check the encryption key, if not exists return an error.
 		if ( !$secret ) {
 			return new WP_Error(
-				'simplejwt_auth_bad_config',
-				__( 'Encryption key is not configured properly.', 'simple-jwt-auth' ),
+				'simplejwt_bad_encryption_key',
+				JWTNotice::get_notice( 'bad_encryption_key' ),
 				['status' => 403]
 			);
 		}
@@ -98,8 +102,8 @@ class Crypto {
 
 		if ( $decrypted === false ) {
 			return new WP_Error(
-				'simplejwt_auth_decryption_failed',
-				__( 'Decryption process failed, contact admin.', 'simple-jwt-auth' ),
+				'simplejwt_decryption_failed',
+				JWTNotice::get_notice( 'decryption_failed' ),
 				['status' => 500]
 			);
 		}
