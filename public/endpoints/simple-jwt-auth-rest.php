@@ -19,7 +19,7 @@ use Simple_Jwt_Auth\Notice\JWTNotice;
  * @author     Sayan Dey <mr.sayandey18@outlook.com>
  */
 
-class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
+class Simple_Jwt_Auth_Api extends Simple_Jwt_Auth_Public {
     /**
 	 * The ID of this plugin.
 	 *
@@ -132,76 +132,120 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
      * 
     */
     public function simplejwt_generate_token( WP_REST_Request $request ) {
+		// Get the username and password from REST request.
+        $username = $request->get_param( 'username' );
+		$password = $request->get_param( 'password' );
+
+		// Check if username or password is missing and return an error.
+		if ( empty( $username ) || empty( $password ) ) {
+			return new WP_Error(
+				'simplejwt_missing_credentials',
+				JWTNotice::get_notice( 'missing_credential' ),
+				['status' => 400]
+			);
+		}
+
 		// Get defined algorithm from the database.
         $algorithm = $this->simplejwt_get_algorithm();
         
         // Check algorithm if not exist return an error.
-        if ( $algorithm === false ) {
+        if ( !$algorithm ) {
 			return new WP_Error(
 				'simplejwt_unsupported_algorithm',
-				JWTNotice::get_notice( 'unsupported_algorithm' ),
+				JWTNotice::get_notice( 'unsupported_algo' ),
 				['status' => 403]
 			);
 		}
 
-		if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
-			// Get the secret key from database.
-			$signing_key = DBManager::get_config( 'secret_key' );
+		// Determine if we're using symmetric (HS*) or asymmetric algorithms.
+		$key_type = in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ? 'secret_key' : 'private_key';
 
-            // Check the signing key if not exist return an error.
-            if ( $signing_key === false ) {
-                return new WP_Error(
-                    'simplejwt_bad_secret_key',
-					JWTNotice::get_notice( 'bad_secret_key' ),
-                    ['status' => 403]
-                );
-            }
+		// Get the `signing_key` from database based on key type.
+		$signing_key = DBManager::get_config( $key_type );
 
-			// Decrypt the secret key using `AES-256-GCM` algo.
-			$secret_key = Crypto::decrypt(
-				sanitize_textarea_field( $signing_key )
+		// Check the signing key if not exist return an error.
+		if ( $signing_key === false ) {
+			return new WP_Error(
+				'simplejwt_bad_' . $key_type,
+				JWTNotice::get_notice( 'bad_' . $key_type ),
+				['status' => 403]
 			);
-
-            // Generate JWT token using authentication.
-            $response = $this->simplejwt_make_authenticate( $request, $algorithm, $secret_key );
-		} else {
-			// Get the private key from database.
-			$signing_key = DBManager::get_config( 'private_key' );
-
-			// Check the signing key if not exist return an error.
-            if ( $signing_key === false ) {
-                return new WP_Error(
-                    'simplejwt_bad_private_key',
-					JWTNotice::get_notice( 'bad_private_key' ),
-                    ['status' => 403]
-                );
-            }
-
-			// Decrypt the private key using `AES-256-GCM` algo.
-			$private_key = Crypto::decrypt(
-				sanitize_textarea_field( $signing_key )
-			);
-
-			// Generate JWT token using authentication.
-            $response = $this->simplejwt_make_authenticate( $request, $algorithm, $private_key );
 		}
 
-		// The token is signed, now create the user object.
-		$user_data = new WP_REST_Response( array(
+		// Decrypt the `secret_key` key using `AES-256-GCM` algo.
+		$encode_key = Crypto::decrypt(
+			sanitize_textarea_field( $signing_key )
+		);
+
+		// If there is WP_Error, return the error.
+		if ( is_wp_error( $encode_key ) ) {
+			return $encode_key;
+		}
+
+		// Authenticate the user with the password cred.
+        $user = wp_authenticate( $username, $password );
+
+        //  If the authentication fails return an error.
+		if ( is_wp_error( $user ) ) {
+			$error_code = $user->get_error_code();
+            $error_message = $user->get_error_message();
+
+			return new WP_Error(
+				'simplejwt_' . $error_code, 
+				wp_strip_all_tags( $error_message ), 
+				['status' => 403]
+			);
+		}
+
+        // If the user validated create according JWT Token.
+		$issued_at  = time();
+		$not_before = apply_filters( 'simplejwt_not_before', $issued_at, $issued_at );
+		$expire     = apply_filters( 'simplejwt_auth_expire', $issued_at + ( DAY_IN_SECONDS * 7 ), $issued_at );
+
+		$payload = [
+			'iss'  => $this->simplejwt_get_iss(),
+			'iat'  => $issued_at,
+			'nbf'  => $not_before,
+			'exp'  => $expire,
+			'data' => [
+				'user' => [
+					'id' => $user->data->ID,
+				],
+			],
+		];
+
+        // Let the user modify the token data before the sign.
+        $token = JWT::encode(
+			apply_filters( 'simplejwt_token_before_sign', $payload, $user ),
+			$encode_key,
+			$algorithm
+		);
+
+		// Return error, there is any problem in creating token.
+		if ( is_string( $token ) === false ) {
+			return new WP_Error(
+				'simplejwt_token_creation_error', 
+				JWTNotice::get_notice( 'unknown_error' ),
+				['status' => 500]
+			);
+		}
+
+		// Prepare the token response.
+		$data = new WP_REST_Response( array(
 			'code'    => 'simplejwt_auth_credential',
 			'message' => JWTNotice::get_notice( 'auth_credential' ),
 			'data'    => [
 				'status'       => 200,
-				'id'           => $response->user->data->ID,
-				'email'        => $response->user->data->user_email,
-				'nicename'     => $response->user->data->user_nicename,
-				'display_name' => $response->user->data->display_name,
-				'token'        => $response->token
+				'id'           => $user->data->ID,
+				'email'        => $user->data->user_email,
+				'nicename'     => $user->data->user_nicename,
+				'display_name' => $user->data->display_name,
+				'token'        => $token
 			]
 		), 200 );
 
         // Let the user modify the data before send it back using `add_filter`.
-        return apply_filters( 'simplejwt_auth_token_before_dispatch', $user_data, $response->user );
+        return apply_filters( 'simplejwt_token_before_dispatch', $data, $user );
     }
 
     /**
@@ -232,10 +276,10 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		}
 
 		// Extract the authorization header.
-		[$jwt_token] = sscanf( $auth_header, 'Bearer %s' );
+		[$token] = sscanf( $auth_header, 'Bearer %s' );
 
 		// If the format is not valid return an error.
-		if ( !$jwt_token ) {
+		if ( !$token ) {
 			return new WP_Error(
 				'simplejwt_bad_auth_header',
 				JWTNotice::get_notice( 'bad_auth_header' ),
@@ -246,42 +290,42 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		$algorithm = $this->simplejwt_get_algorithm();
         
         // Check algorithm if not exist return an error.
-        if ( $algorithm === false ) {
+        if ( !$algorithm ) {
 			return new WP_Error(
 				'simplejwt_unsupported_algorithm',
-				JWTNotice::get_notice( 'unsupported_algorithm' ),
+				JWTNotice::get_notice( 'unsupported_algo' ),
 				['status' => 403]
 			);
 		}
 
-		if ( in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ) {
-			$signing_key = DBManager::get_config( 'secret_key' ) ?? false;
-			if ( $signing_key ) {
-				$signing_key = sanitize_textarea_field(
-					Crypto::decrypt( $signing_key )
-				);
-			}
-		} else {
-			$signing_key = DBManager::get_config( 'public_key' ) ?? false;
-			if ( $signing_key ) {
-				$signing_key = sanitize_textarea_field(
-					Crypto::decrypt( $signing_key )
-				);
-			}
-		}
+		// Determine if we're using symmetric (HS*) or asymmetric algorithms.
+		$key_type = in_array( $algorithm, ['HS256', 'HS384', 'HS512'], true ) ? 'secret_key' : 'public_key';
 
-		// If the signing key is not present return error.
-		if ( !$signing_key ) {
+		// Get the `signing_key` from database based on key type.
+		$signing_key = DBManager::get_config( $key_type );
+
+		// Check the signing key if not exist return an error.
+		if ( $signing_key === false ) {
 			return new WP_Error(
-				'simplejwt_bad_config',
-				JWTNotice::get_notice( 'bad_config' ),
+				'simplejwt_bad_' . $key_type,
+				JWTNotice::get_notice( 'bad_' . $key_type ),
 				['status' => 403]
 			);
+		}
+
+		// Decrypt secret key using `AES-256-GCM` algo.
+		$decode_key = Crypto::decrypt( 
+			sanitize_textarea_field( $signing_key )
+		);
+
+		// If there is WP_Error, return the error.
+		if ( is_wp_error( $decode_key ) ) {
+			return $decode_key;
 		}
 
 		// Decode the JWT token using try catch block
 		try {
-			$decoded_token = JWT::decode( $jwt_token, new Key( $signing_key, $algorithm ) );
+			$decoded_token = JWT::decode( $token, new Key( $decode_key, $algorithm ) );
 
 			// Validate the issuer from decoded token.
 			if ( $decoded_token->iss !== $this->simplejwt_get_iss() ) {
@@ -368,18 +412,18 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		}
 
 		// Check the token from the headers.
-		$jwt_token = $this->simplejwt_validate_token( new WP_REST_Request(), $auth_header );
+		$token = $this->simplejwt_validate_token( new WP_REST_Request(), $auth_header );
 
-		if ( is_wp_error( $jwt_token ) ) {
-			if ( $jwt_token->get_error_code() != 'simplejwt_no_auth_header' ) {
-				$this->jwt_error = $jwt_token;
+		if ( is_wp_error( $token ) ) {
+			if ( $token->get_error_code() != 'simplejwt_no_auth_header' ) {
+				$this->jwt_error = $token;
 			}
 
 			return $current_user;
 		}
 
 		// Everything is ok, return the user ID from token.
-		return $jwt_token->data->user->id;
+		return $token->data->user->id;
     }
 
 	/**
@@ -412,7 +456,7 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 	 * that the algorithm is in the supported list.
      * 
      * @since   1.0.0
-	 * @return	string
+	 * @return	bool|string
 	 */
     private function simplejwt_get_algorithm() {
 		$algorithm = DBManager::get_config( 'algorithm' );
@@ -425,80 +469,4 @@ class Simple_Jwt_Auth_Auth extends Simple_Jwt_Auth_Public {
 		
 		return $algorithm;
 	}
-
-	/**
-	 * Get the user and password in the request body and generate
-	 * JWT by using the algorithm and signing_key.
-	 * 
-	 * @since   1.0.0
-	 * 
-	 * @param	WP_REST_Request $request
-	 * @param	string $algorithm
-	 * @param	string $signing_key
-	 * 
-	 * @return	WP_Error|object
-	 */
-    private function simplejwt_make_authenticate( 
-		WP_REST_Request $request, 
-		string $algorithm, 
-		string $signing_key 
-	) {
-        $username = $request->get_param( 'username' );
-		$password = $request->get_param( 'password' );
-
-        // Check the signing key if not exist return an error.
-        if ( $signing_key === false ) {
-            return new WP_Error(
-                'simplejwt_bad_signing_key',
-				JWTNotice::get_notice( 'bad_signing_key' ),
-                ['status' => 403]
-            );
-        }
-
-        // Authenticate the user with the password cred.
-        $user = wp_authenticate( $username, $password );
-
-        //  If the authentication fails return an error.
-		if ( is_wp_error( $user ) ) {
-			$error_code = $user->get_error_code();
-            $error_message = $user->get_error_message();
-
-			return new WP_Error(
-				'simplejwt_' . $error_code, 
-				wp_strip_all_tags( $error_message ), 
-				['status' => 403]
-			);
-		}
-
-        // If the user validated create according JWT Token.
-		$issued_at  = time();
-		$not_before = apply_filters( 'simplejwt_auth_not_before', $issued_at, $issued_at );
-		$expire     = apply_filters( 'simplejwt_auth_expire', $issued_at + ( DAY_IN_SECONDS * 7 ), $issued_at );
-
-		$payload = [
-			'iss'  => $this->simplejwt_get_iss(),
-			'iat'  => $issued_at,
-			'nbf'  => $not_before,
-			'exp'  => $expire,
-			'data' => [
-				'user' => [
-					'id' => $user->data->ID,
-				],
-			],
-		];
-
-        // Let the user modify the token data before the sign.
-        $token = JWT::encode(
-			apply_filters( 'simplejwt_auth_token_before_sign', $payload, $user ),
-			$signing_key,
-			$algorithm
-		);
-
-        // Create an object to hold the user data and token.
-        $response = new stdClass();
-        $response->user = $user;
-        $response->token = $token;
-
-        return $response;
-    }
 }

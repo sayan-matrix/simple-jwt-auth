@@ -156,7 +156,7 @@ class Simple_Jwt_Auth {
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-simple-jwt-auth-public.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/endpoints/api-simple-jwt-auth.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/endpoints/simple-jwt-auth-rest.php';
 
 		$this->loader = new Simple_Jwt_Auth_Loader();
 	}
@@ -189,7 +189,9 @@ class Simple_Jwt_Auth {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'simplejwt_admin_menus' );
+		$this->loader->add_action( 'simplejwt_admin_alert', $plugin_admin, 'simplejwt_admin_notices' );
 		$this->loader->add_action( 'admin_post_simplejwt_settings_action', $plugin_admin, 'simplejwt_settings_callback');
+		$this->loader->add_action( 'admin_post_simplejwt_options_action', $plugin_admin, 'simplejwt_options_callback');
 		$this->loader->add_filter( 'xmlrpc_enabled', $plugin_admin, 'simplejwt_disable_xmlrpc' );
 		$this->loader->add_filter( 'admin_body_class', $plugin_admin, 'simplejwt_admin_body_classes' );
 		$this->loader->add_filter( 'plugin_action_links_' . SIMPLE_JWT_AUTH_BASENAME, $plugin_admin, 'simplejwt_quick_links' );
@@ -205,7 +207,7 @@ class Simple_Jwt_Auth {
 	private function define_public_hooks() {
 		$plugin_public = new Simple_Jwt_Auth_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$plugin_auth_public = new Simple_Jwt_Auth_Auth( $this->get_plugin_name(), $this->get_version(), $this->get_endpoint() );
+		$plugin_auth_public = new Simple_Jwt_Auth_Api( $this->get_plugin_name(), $this->get_version(), $this->get_endpoint() );
 
 		$this->loader->add_action( 'rest_api_init', $plugin_auth_public, 'simplejwt_add_api_routes' );
 		$this->loader->add_filter( 'rest_api_init', $plugin_auth_public, 'simplejwt_add_cors_support' );
