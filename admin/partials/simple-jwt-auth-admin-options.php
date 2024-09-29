@@ -13,8 +13,6 @@
  */
 ?>
 
-<!-- This file should primarily consist of HTML with a little bit of PHP. -->
-
 <div class="simplejwt-navbar">
     <div class="simplejwt-navbar-wrapper">
         <div class="simplejwt-menu-area">
@@ -39,13 +37,13 @@
 
 <div class="simplejwt-section">
     <div class="simplejwt-container">
-        <?php
-        // Generate and display the admin notice.
-        $notice = $this->simplejwt_admin_notices();
-        if ( !empty( $notice ) ) {
-            // Escape output to prevent XSS
-            echo wp_kses_post( $notice );
-        } ?>
+        <?php 
+        /**
+         * Trigger the display of custom admin notices.
+         * 
+         * @since   1.0.0
+         */
+        do_action( 'simplejwt_admin_alert' ); ?>
 
         <div class="simplejwt-container-items">
             <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" id="simplejwt_options">
@@ -66,18 +64,18 @@
                             </div>
                             <div class="simplejwt-action-area">
                                 <div class="simplejwt-checkbox-wrapper">
-                                    <input type="checkbox" class="simplejwt-checkbox-btn" id="simplejwt_enable_cors"
-                                        name="simplejwt_enable_cors" <?php checked( isset( $config[ 'enable_cors' ] ) && $config[ 'enable_cors' ] == '1', true ); ?> />
+                                    <input type="checkbox" class="simplejwt-checkbox-btn" id="simplejwt_drop_configs"
+                                        name="simplejwt_drop_configs" <?php checked( get_option( 'simplejwt_drop_configs' ) == '1', true ); ?> />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="simplejwt-site-update simplejwt-mt-15">
+                <!-- <div class="simplejwt-site-update simplejwt-mt-15">
                     <button id="simplejwt_submit_btn" class="simplejwt-submit-btn" type="submit">
                         <?php esc_html_e( 'Save Changes', 'simple-jwt-auth' ); ?>
                     </button>
-                </div>
+                </div> -->
             </form>
         </div>
     </div>

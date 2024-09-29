@@ -1,5 +1,9 @@
 <?php
 
+/* Require Crypto and DBManager class */
+use Simple_Jwt_Auth\OpenSSL\Crypto;
+use Simple_Jwt_Auth\Database\DBManager;
+
 /**
  * Provide a admin area view for the plugin
  *
@@ -12,8 +16,6 @@
  * @subpackage Simple_Jwt_Auth/admin/partials
  */
 ?>
-
-<!-- This file should primarily consist of HTML with a little bit of PHP. -->
 
 <div class="simplejwt-navbar">
     <div class="simplejwt-navbar-wrapper">
@@ -39,13 +41,13 @@
 
 <div class="simplejwt-section">
     <div class="simplejwt-container">
-        <?php
-        // Generate and display the admin notice.
-        $notice = $this->simplejwt_admin_notices();
-        if ( !empty( $notice ) ) {
-            // Escape output to prevent XSS
-            echo wp_kses_post( $notice );
-        } ?>
+        <?php 
+        /**
+         * Trigger the display of custom admin notices.
+         * 
+         * @since   1.0.0
+         */
+        do_action( 'simplejwt_admin_alert' ); ?>
 
         <div class="simplejwt-container-items">
             <div class="simplejwt-site-info">
@@ -240,10 +242,5 @@
                 </div>
             </form>
         </div>
-
-        <pre>
-            <?php // print_r( $config ); ?>
-        </pre>
-
     </div>
 </div>
