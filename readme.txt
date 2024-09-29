@@ -1,36 +1,328 @@
 === Simple JWT Auth ===
 Contributors: sayandey18
 Donate link: https://github.com/sayandey18
-Tags: jwt, tokens, rest api, json web authentication, headless
-Requires at least: 4.2
-Tested up to: 6.6.1
+Tags: json web token, jwt auth, jwt, rest api, authentication
+Requires at least: 5.2 or higher
+Tested up to: 6.6.2
 Stable tag: 1.0.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 
-Extends the WP REST API using JSON Web Tokens for robust authentication, providing a secure and reliable 
-way to access and manage WordPress data.
+Extends the WP REST API using JSON Web Tokens for robust authentication, providing a secure and reliable way to access and manage WordPress data.
 
 == Description ==
 
 Extends the WordPress REST API using JSON Web Tokens for robust authentication and authorization. 
 
-It provides a secure and reliable way to access and manage WordPress data 
-from external applications, making it ideal for building headless CMS solutions.
+JSON Web Token (JWT) is an open standard ([RFC 7519](https://tools.ietf.org/html/rfc7519)) that defines a compact and self-contained way for securely transmitting information between two parties.
 
-It’s main purpose is to allow you to securely connect a mobile app or other websites with WordPress.
+It provides a secure and reliable way to access and manage WordPress data from external applications, making it ideal for building headless CMS solutions.
+
+- Support & question: [WordPress support forum](#)
+- Reporting plugin's bug: [GitHub issues tracker](https://github.com/sayandey18/simple-jwt-auth/issues)
+
+**Plugins GitHub Repo** https://github.com/sayandey18/simple-jwt-auth
+
+## Enable PHP HTTP Authorization Header
+
+HTTP Authorization is a mechanism that allows clients to provide credentials to servers, thereby gaining access to protected resources. This is typically achieved by sending a special header, the Authorization header, in the HTTP request.
+
+#### Shared Hosts
+
+Most shared hosts have disabled the **HTTP Authorization Header** by default.
+
+To enable this option you'll need to edit your **.htaccess** file by adding the following:
+
+`
+RewriteEngine on
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule ^(.*) - [E=HTTP_AUTHORIZATION:%1]
+`
+
+#### WPEngine
+
+To enable this option you'll need to edit your .htaccess file adding the follow:
+
+`
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+`
+
+## Configuration
+
+Simple JWT Auth plugin needs a **Signing Key** to encrypt and decrypt the **secret key**, **private key**, and **public key**. This signing key must be exact 32 charecter long and never be revealed.
+
+To add the **signing key** edit your `wp-config.php` file and add a new constant called **SIMPLE_JWT_AUTH_ENCRYPT_KEY**
+
+`
+define( 'SIMPLE_JWT_AUTH_ENCRYPT_KEY', 'your-32-char-signing-key' );
+`
+
+Here is the sample response if the encryption key is not configured in wp-config.php file.
+
+`
+{
+    "code": "simplejwt_bad_encryption_key",
+    "message": "Encryption key is not configured properly.",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+## REST Endpoints
+
+When the plugin is activated, a new namespace is added.
+
+`
+/wp-jwt/v1
+`
+
+Also, two new endpoints are added to this namespace.
+
+`
+*/wp-json/wp-jwt/v1/token          | POST
+*/wp-json/wp-jwt/v1/token/validate | POST
+`
+
+### Requesting/Generating Token
+
+To generate a new token, submit a POST request to this endpoint. With `username` and `password` as the parameters.
+
+It will validates the user credentials, and returns success response including a token if the authentication is correct or returns an error response if the authentication is failed.
+
+`
+curl --location 'https://example.com/wp-json/wp-jwt/v1/token' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "username": "wordpress_username",
+    "password": "wordpress_password"
+}'
+`
+
+#### Sample of success response
+
+`
+{
+    "code": "simplejwt_auth_credential",
+    "message": "Token created successfully",
+    "data": {
+        "status": 200,
+        "id": "2",
+        "email": "sayandey@outlook.com",
+        "nicename": "sayan_dey",
+        "display_name": "Sayan Dey",
+        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3dwLnNlcnZlcmhvbWUuYml6IiwiaWF0IjoxNzI3NTU0MzYwLCJuYmYiOjE3Mjc1NTQzNjAsImV4cCI6MTcyODE1OTE2MCwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMiJ9fX0.9cOvUrCXNYW3v2IyyYOZ3omc0MxMFFagzP3BTFsAkr0"
+    }
+}
+`
+
+#### Sample of error response
+
+`
+{
+    "code": "simplejwt_invalid_username",
+    "message": "Error: The username admin_user is not registered on this site. If you are unsure of your username, try your email address instead.",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+Once you get the token, you can store it somewhere in your application:
+
+- using **Cookie** 
+- or using **localstorage** 
+- or using a wrapper like [localForage](https://localforage.github.io/localForage/) or [PouchDB](https://pouchdb.com/)
+- or using local database like SQLite
+- or your choice based on app you develop
+
+Then you should pass this token as _Bearer Authentication_ header to every API call.
+
+`
+Authorization: Bearer your-generated-token
+`
+
+Here is an example to create WordPress post using JWT token authentication.
+
+`
+curl --location 'https://example.com/wp-json/wp/v2/posts' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3dwLnNlcnZlcmhvbWUuYml6IiwiaWF0IjoxNzI3NTU0MzYwLCJuYmYiOjE3Mjc1NTQzNjAsImV4cCI6MTcyODE1OTE2MCwiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMiJ9fX0.9cOvUrCXNYW3v2IyyYOZ3omc0MxMFFagzP3BTFsAkr0' \
+--data '{
+    "title": "Dummy post through API",
+    "content": "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+    "status": "publish",
+    "tags": [
+        4,
+        5,
+        6
+    ]
+}'
+`
+
+Plugin's middleware intercepts every request to the server, checking for the presence of the **Authorization** header. If the header is found, it attempts to decode the JWT token contained within.
+
+Upon successful decoding, the middleware extracts the user information stored in the token and authenticates the user accordingly, ensuring that only authorized requests are processed.
+
+### Validating Token
+
+This is a helper endpoint to validate a token. You only will need to make a **POST** request sending the Bearer Authorization header.
+
+`
+curl --location --request POST 'https://example.com/wp-json/wp-jwt/v1/token/validate' \
+--header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciO.........'
+`
+
+#### Sample of success response
+
+`
+
+`
+
+## REST Errors
+
+If the token is invalid an error will be returned, here are some samples of errors.
+
+#### Invalid Username
+
+`
+{
+    "code": "simplejwt_invalid_username",
+    "message": "Error: The username admin is not registered on this site. If you are unsure of your username, try your email address instead.",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### Invalid Password
+
+`
+{
+    "code": "simplejwt_incorrect_password",
+    "message": "Error: The password you entered for the username tiyasha_das is incorrect. Lost your password?",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### Invalid Signature
+
+`
+{
+    "code": "simplejwt_invalid_token",
+    "message": "Signature verification failed",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### Invalid Token
+
+`
+{
+    "code": "simplejwt_invalid_token",
+    "message": "Syntax error, malformed JSON",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### Expired Token
+
+`
+{
+    "code": "simplejwt_invalid_token",
+    "message": "Expired token",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### No Authorization
+
+`
+{
+    "code": "simplejwt_no_auth_header",
+    "message": "Authorization header not found",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### Bad Authorization
+
+`
+{
+    "code": "simplejwt_bad_auth_header",
+    "message": "Authorization header malformed",
+    "data": {
+        "status": 400
+    }
+}
+`
+
+#### Wrong Algorithm Token
+
+`
+{
+    "code": "simplejwt_invalid_token",
+    "message": "Incorrect key for this algorithm",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### Unsupported Algorithm
+`
+{
+    "code": "simplejwt_unsupported_algorithm",
+    "message": "Unsupported algorithm see https://tinyurl.com/uf4ns6fm",
+    "data": {
+        "status": 403
+    }
+}
+`
+
+#### Bad Configuration
+
+`
+{
+    "code": "simplejwt_bad_config",
+    "message": "JWT is not configured properly, please contact the admin",
+    "data": {
+        "status": 403
+    }
+}
+`
 
 == Installation ==
 
 This section describes how to install the plugin and get it working.
 
-e.g.
+= Using FTP Client =
 
-1. Upload `simple-jwt-auth.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
+1. Download the latest plugin from [here](https://github.com/sayandey18/simple-jwt-auth)
+2. Unzip the `simple-jwt-auth.zip` file in your computer.
+3. Upload `simple-jwt-auth` folder into the `/wp-content/plugins/` directory.
+4. Activate the plugin through the 'Plugins' dashboard.
+
+= Uploading from Dashboard =
+
+1. Download the latest plugin from [here](https://github.com/sayandey18/simple-jwt-auth)
+2. Navigate to the Plugins section and click 'Add New Plugin' from the dashboard.
+3. Navigate to the Upload area by clicking on the 'Upload Plugin' button.
+4. Select the `simple-jwt-auth.zip` from your computer.
+5. Click on the 'Install Now' button.
+6. Activate the plugin through the 'Plugins' dashboard.
 
 == Frequently Asked Questions ==
 
@@ -44,56 +336,12 @@ Answer to foo bar dilemma.
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
-* Another change.
-
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
+= 1.0.0 =
+* Initial Release.
 
 == Upgrade Notice ==
-
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
-
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
-
-== Arbitrary section ==
-
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
-
-== A brief Markdown Example ==
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
-
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
-
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`
+.
