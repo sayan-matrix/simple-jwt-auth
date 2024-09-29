@@ -127,4 +127,10 @@
 			submitButton.closest('form').submit();
 		}, 2000);
 	});
+
+	$('#simplejwt_drop_configs').on('change', function (e) {
+		e.preventDefault();
+		// Submit the form
+		$(this).closest('form').submit();
+	});
 })(jQuery);
