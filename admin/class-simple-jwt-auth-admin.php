@@ -318,12 +318,13 @@ class Simple_Jwt_Auth_Admin {
 			// Initiate the DBManager class to update the config data.
 			$update_config = DBManager::save_config( $configs );
 
-			if ( $update_config === true ) {
-				$this->simplejwt_admin_redirect( true, JWTNotice::get_notice( 'success' ) );
+			// Return with unknown error message if the update is failed.
+			if ( $update_config === false ) {
+				$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'unknown_error' ) );
 			}
 	
-			// Redirect the user to the appropriate page,
-			$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'unknown_error' ) );
+			// Redirect with a success message if the update is successful.
+			$this->simplejwt_admin_redirect( true, JWTNotice::get_notice( 'success' ) );
 		} else {
 			wp_die(
 				esc_html__( 'Invalid nonce specified!', 'simple-jwt-auth' ),
@@ -331,6 +332,39 @@ class Simple_Jwt_Auth_Admin {
 				[
 					'response'  => 403,
 					'back_link' => 'admin.php?page=simple-jwt-auth'
+				]
+			);
+		}
+	}
+
+	/**
+	 * Callback function to handle the JWT options form, and perform sql 
+	 * query to save the options into database that used in plugin uninstallation.
+	 * 
+	 * @since	1.0.0
+	 */
+	public function simplejwt_options_callback() {
+		if ( isset( $_POST['simplejwt_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['simplejwt_nonce'] ) ), 'simplejwt_nonce' ) ) {
+			// Checks the all form values.
+			$remove_configs = isset( $_POST['simplejwt_drop_configs'] ) ? filter_var( wp_unslash( $_POST['simplejwt_drop_configs'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+
+			// Update the option based on the checkbox value.
+			$update_option = update_option( 'simplejwt_drop_configs', $remove_configs );
+
+			// Return with unknown error message if the update is failed.
+			if ( $update_option === false ) {
+				$this->simplejwt_admin_redirect( false, JWTNotice::get_notice( 'unknown_error' ), 'options' );
+			}
+
+			// Redirect with a success message if the update is successful.
+			$this->simplejwt_admin_redirect( true, JWTNotice::get_notice( 'success' ), 'options' );
+		} else {
+			wp_die(
+				esc_html__( 'Invalid nonce specified!', 'simple-jwt-auth' ),
+				esc_html__( 'JWT Error', 'simple-jwt-auth' ),
+				[
+					'response'  => 403,
+					'back_link' => 'admin.php?page=simple-jwt-auth-options'
 				]
 			);
 		}
@@ -346,7 +380,7 @@ class Simple_Jwt_Auth_Admin {
 	 * @param boolean $status
 	 * @param string  $message
 	 */
-	public function simplejwt_admin_redirect( bool $status, string $message ) {
+	public function simplejwt_admin_redirect( bool $status, string $message, ?string $location = null ) {
 		if ( get_transient( 'simplejwt_admin_notice' ) ) {
 			delete_transient( 'simplejwt_admin_notice' );
 		}
@@ -357,7 +391,11 @@ class Simple_Jwt_Auth_Admin {
 		], MINUTE_IN_SECONDS );
 
 		if ( $set_notice === true ) {
-			wp_redirect( admin_url( 'admin.php?page=simple-jwt-auth' ) );
+			// Set the redirect location.
+			$redirect = $location ? admin_url( 'admin.php?page=simple-jwt-auth-' . $location ) : admin_url( 'admin.php?page=simple-jwt-auth' );
+
+			// Redirect to the appropriate page.
+			wp_redirect( $redirect );
 			exit();
 		}
 	}
