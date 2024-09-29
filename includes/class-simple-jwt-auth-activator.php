@@ -18,6 +18,7 @@ class Simple_Jwt_Auth_Activator {
 	public static function activate() {
 		// Init the private function.
 		self::create_table();
+        self::create_option();
 		self::migrate_table();
 	}
 
@@ -57,6 +58,17 @@ class Simple_Jwt_Auth_Activator {
         // Execute the SQL statement to create table.
         dbDelta( $sql );
 	}
+
+    /**
+     * Create a private function that will create required plugin options in the
+     * WordPress `wp_options` table.
+     * 
+     * @since   1.0.0
+     */
+    private static function create_option() {
+        // Create an option for uninstallation.
+        add_option( 'simplejwt_drop_configs', true );
+    }
 
 	/**
      * Create a private function that will insert the plugin default config 
