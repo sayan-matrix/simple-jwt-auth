@@ -543,8 +543,8 @@ add_filter(
 
 ## Credits
 
-[WordPress REST API](https://developer.wordpress.org/rest-api/)
-[php-jwt by Firebase](https://github.com/firebase/php-jwt)
+* [WordPress REST API](https://developer.wordpress.org/rest-api/)
+* [php-jwt by Firebase](https://github.com/firebase/php-jwt)
 
 == Installation ==
 
@@ -590,7 +590,7 @@ Please submit an issue in our support portal. If you are a developer please [cre
 
 = 1.0.0 (Date: October 05, 2024) =
 * Initial release.
-* 42 git commits so far.
+* 44 git commits so far.
 * Work for one month during the free time.
 
 == Upgrade Notice ==
