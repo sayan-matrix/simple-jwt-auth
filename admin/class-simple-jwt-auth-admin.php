@@ -410,25 +410,39 @@ class Simple_Jwt_Auth_Admin {
 	 * 
 	 * @since	1.0.0
 	 */
-	public function simplejwt_admin_notices() {
-		// Checks the `simplejwt_admin_notice` key is present in transient.
-		if ( get_transient( 'simplejwt_admin_notice' ) ) {
-			$get_notice = get_transient( 'simplejwt_admin_notice' );
+	public function simplejwt_admin_notices( ?string $status = null, ?string $message = null ) {
+		// Check if status and message are provided, if so display notice.
+		if ( !empty( $status ) && !empty( $message ) ) {
+			$status  = sanitize_text_field( wp_unslash( $status ) );
+			$message = sanitize_text_field( wp_unslash( $message ) );
 
-			// Checks `status` and `message` are already set.
-			if ( isset( $get_notice['status'], $get_notice['message'] ) ) {
-				$status  = sanitize_text_field( wp_unslash( $get_notice['status'] ) );
-				$message = sanitize_text_field( wp_unslash( $get_notice['message'] ) );
+			if ( $status === 'success' ) {
+				// translators: %s is the success notice message.
+				printf( '<div class="notice notice-success is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+			} else {
+				// translators: %s is the error notice message.
+				printf( '<div class="notice notice-error is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+			}
+		} else {
+			// Checks the `simplejwt_admin_notice` key is present in transient.
+			if ( get_transient( 'simplejwt_admin_notice' ) ) {
+				$get_notice = get_transient( 'simplejwt_admin_notice' );
 
-				// Delete the existing transient to store new notice.
-				$delete_transist = delete_transient( 'simplejwt_admin_notice' );
-				if ( $delete_transist ) {
-					if ( $status === 'success' ) {
-						// translators: %s is the success notice message.
-						printf( '<div class="notice notice-success is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
-					} else {
-						// translators: %s is the error notice message.
-						printf( '<div class="notice notice-error is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+				// Checks `status` and `message` are already set.
+				if ( isset( $get_notice['status'], $get_notice['message'] ) ) {
+					$status  = sanitize_text_field( wp_unslash( $get_notice['status'] ) );
+					$message = sanitize_text_field( wp_unslash( $get_notice['message'] ) );
+
+					// Delete the existing transient to store new notice.
+					$delete_transist = delete_transient( 'simplejwt_admin_notice' );
+					if ( $delete_transist ) {
+						if ( $status === 'success' ) {
+							// translators: %s is the success notice message.
+							printf( '<div class="notice notice-success is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+						} else {
+							// translators: %s is the error notice message.
+							printf( '<div class="notice notice-error is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+						}
 					}
 				}
 			}
@@ -480,7 +494,7 @@ class Simple_Jwt_Auth_Admin {
 		$wp_body_message = __( 'Website is running on the latest version.', 'simple-jwt-auth' );
 
 		if ( $recommended_wp && version_compare( $current_wp, $recommended_wp, '<' ) ) {
-			// translators: %s is the latest WordPress version to update.
+			// translators: %s is the latest WordPress/PHP version to update.
 			$wp_update_message = sprintf( __( 'Update to %s is recommended.', 'simple-jwt-auth' ), esc_html( $recommended_wp ) );
 			$wp_body_message = __( 'An update is available for your WordPress installation.', 'simple-jwt-auth' );
 		}
@@ -492,7 +506,7 @@ class Simple_Jwt_Auth_Admin {
     	$php_body_message = __( 'Website is running on the recommended version.', 'simple-jwt-auth' );
 
 		if ( $recommended_php && version_compare( $current_php, $recommended_php, '<' ) ) {
-			// translators: %s is the recommended PHP version to update.
+			// translators: %s is the latest WordPress/PHP version to update.
 			$php_update_message = sprintf( __( 'Update to %s is recommended.', 'simple-jwt-auth' ), esc_html( $recommended_php ) );
 			$php_body_message = __( 'Various updates and fixes are available in the newest version.', 'simple-jwt-auth' );
 		}
@@ -524,6 +538,23 @@ class Simple_Jwt_Auth_Admin {
 		}
 
 		return $svg_icon;
+	}
+
+	/**
+	 * Dynamically generate the plugin's API endpoints.
+	 * 
+	 * @since	1.0.0
+	 * @return	string
+	 */
+	private function simplejwt_public_endpoints( ?string $path = '' ) {
+		// Check if constant is defined and assign its value, defaulting to '1.0.0' and 'auth'.
+		$plugin_version = defined( 'SIMPLE_JWT_AUTH_VERSION' ) ? SIMPLE_JWT_AUTH_VERSION : '1.0.0';
+		$plugin_endpoint = defined( 'SIMPLE_JWT_AUTH_ENDPOINT' ) ? SIMPLE_JWT_AUTH_ENDPOINT : 'auth';
+
+		// Construct the REST endpoint.
+		$api_endpoint = sprintf('%s/v%d/%s', $plugin_endpoint, intval( $plugin_version ), $path );
+
+		return rest_url( $api_endpoint );
 	}
 
 }
