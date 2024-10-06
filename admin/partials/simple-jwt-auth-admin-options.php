@@ -56,26 +56,16 @@
                         <div class="simplejwt-card-header">
                             <div class="simplejwt-stack-heading">
                                 <h3><?php esc_html_e( 'Remove configs data', 'simple-jwt-auth' ); ?></h3>
-                                <p class="simplejwt-body-desc simplejwt-mt-10">
-                                    <?php esc_html_e( 'Checking this box will permanently delete all JWT authentication 
-                                    tables and data while uninstalling, which is irreversible 
-                                    and cannot be recovered.', 'simple-jwt-auth' ); ?>
-                                </p>
+                                <p class="simplejwt-body-desc simplejwt-mt-10"><?php esc_html_e( 'Checking this box will permanently delete all JWT authentication tables and data while uninstalling, which is irreversible and cannot be recovered.', 'simple-jwt-auth' ); ?></p>
                             </div>
                             <div class="simplejwt-action-area">
                                 <div class="simplejwt-checkbox-wrapper">
-                                    <input type="checkbox" class="simplejwt-checkbox-btn" id="simplejwt_drop_configs"
-                                        name="simplejwt_drop_configs" <?php checked( get_option( 'simplejwt_drop_configs' ) == '1', true ); ?> />
+                                    <input type="checkbox" class="simplejwt-checkbox-btn" id="simplejwt_drop_configs" name="simplejwt_drop_configs" <?php checked( get_option( 'simplejwt_drop_configs' ) == '1', true ); ?> />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- <div class="simplejwt-site-update simplejwt-mt-15">
-                    <button id="simplejwt_submit_btn" class="simplejwt-submit-btn" type="submit">
-                        <?php esc_html_e( 'Save Changes', 'simple-jwt-auth' ); ?>
-                    </button>
-                </div> -->
             </form>
         </div>
     </div>
