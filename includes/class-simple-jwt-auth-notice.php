@@ -34,36 +34,37 @@ class JWTNotice {
         $notices = new stdClass();
 
         // Notices for the plugin admin panel.
-		$notices->error               = __( 'Settings save failed!', 'simple-jwt-auth' );
-		$notices->success             = __( 'Settings saved successfully', 'simple-jwt-auth' );
-		$notices->empty_secret_key	  = __( 'Secret key is missing', 'simple-jwt-auth' );
-		$notices->empty_public_key	  = __( 'Public key is missing', 'simple-jwt-auth' );
-		$notices->empty_private_key   = __( 'Private key is missing', 'simple-jwt-auth' );
-		$notices->invalid_private_key = __( 'Invalid private key format', 'simple-jwt-auth' );
-		$notices->invalid_public_key  = __( 'Invalid public key format', 'simple-jwt-auth' );
+        $notices->error                 = __( 'Settings save failed!', 'simple-jwt-auth' );
+        $notices->success               = __( 'Settings saved successfully', 'simple-jwt-auth' );
+        $notices->empty_secret_key	    = __( 'Secret key is missing', 'simple-jwt-auth' );
+        $notices->empty_public_key	    = __( 'Public key is missing', 'simple-jwt-auth' );
+        $notices->empty_private_key     = __( 'Private key is missing', 'simple-jwt-auth' );
+        $notices->invalid_private_key   = __( 'Invalid private key format', 'simple-jwt-auth' );
+        $notices->invalid_public_key    = __( 'Invalid public key format', 'simple-jwt-auth' );
 
         // Notices for the API responses.
-        $notices->auth_credential     = __( 'Token created successfully', 'simple-jwt-auth' );
-        $notices->valid_token         = __( 'Token is valid', 'simple-jwt-auth' );
-        $notices->bad_request         = __( 'User ID not found in the token', 'simple-jwt-auth' );
-        $notices->bad_issuer          = __( 'The issuer does not match with this server', 'simple-jwt-auth' );
-        $notices->bad_config          = __( 'JWT is not configured properly, please contact the admin', 'simple-jwt-auth' );
-        $notices->bad_auth_header     = __( 'Authorization header malformed', 'simple-jwt-auth' );
-        $notices->no_auth_header      = __( 'Authorization header not found', 'simple-jwt-auth' );
-        $notices->bad_secret_key      = __( 'JWT secret key not configured, please contact the admin', 'simple-jwt-auth' );
-        $notices->missing_credential  = __( 'Username or password is missing', 'simple-jwt-auth' );
-        $notices->bad_private_key     = __( 'JWT private key not configured, please contact the admin', 'simple-jwt-auth' );
-        $notices->bad_public_key      = __( 'JWT public key not configured, please contact the admin', 'simple-jwt-auth' );
-        $notices->bad_signing_key     = __( 'JWT signing key not configured, please contact the admin', 'simple-jwt-auth' );
-        $notices->bad_encryption_key  = __( 'Encryption key is not configured properly', 'simple-jwt-auth' );
-        $notices->encryption_failed   = __( 'Encryption process failed, contact admin', 'simple-jwt-auth' );
-        $notices->decryption_failed   = __( 'Decryption process failed, contact admin', 'simple-jwt-auth' );
+        $notices->auth_credential       = __( 'Token created successfully', 'simple-jwt-auth' );
+        $notices->valid_token           = __( 'Token is valid', 'simple-jwt-auth' );
+        $notices->bad_request           = __( 'User ID not found in the token', 'simple-jwt-auth' );
+        $notices->bad_issuer            = __( 'The issuer does not match with this server', 'simple-jwt-auth' );
+        $notices->bad_config            = __( 'JWT is not configured properly, please contact the admin', 'simple-jwt-auth' );
+        $notices->bad_auth_header       = __( 'Authorization header malformed', 'simple-jwt-auth' );
+        $notices->no_auth_header        = __( 'Authorization header not found', 'simple-jwt-auth' );
+        $notices->bad_secret_key        = __( 'JWT secret key not configured, please contact the admin', 'simple-jwt-auth' );
+        $notices->missing_credential    = __( 'Username or password is missing', 'simple-jwt-auth' );
+        $notices->bad_private_key       = __( 'JWT private key not configured, please contact the admin', 'simple-jwt-auth' );
+        $notices->bad_public_key        = __( 'JWT public key not configured, please contact the admin', 'simple-jwt-auth' );
+        $notices->bad_signing_key       = __( 'JWT signing key not configured, please contact the admin', 'simple-jwt-auth' );
+        $notices->bad_encryption_key    = __( 'Encryption key is not configured properly', 'simple-jwt-auth' );
+        $notices->invalid_enckey_length = __( 'Encryption key must be exactly 32 characters long', 'simple-jwt-auth' );
+        $notices->encryption_failed     = __( 'Encryption process failed, contact admin', 'simple-jwt-auth' );
+        $notices->decryption_failed     = __( 'Decryption process failed, contact admin', 'simple-jwt-auth' );
 
         // Common notice for admin and API.
-        $notices->unknown_error       = __( 'Something went wrong, try again', 'simple-jwt-auth' );
-        $notices->unsupported_algo    = __( 'Unsupported algorithm see https://tinyurl.com/uf4ns6fm', 'simple-jwt-auth' );
-
-		return $notices;
+        $notices->unknown_error         = __( 'Something went wrong, try again', 'simple-jwt-auth' );
+        $notices->unsupported_algo      = __( 'Unsupported algorithm see https://tinyurl.com/uf4ns6fm', 'simple-jwt-auth' );
+        
+        return $notices;
     }
 
     /**
