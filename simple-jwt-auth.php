@@ -36,7 +36,7 @@ define( 'SIMPLE_JWT_AUTH_VERSION', '1.0.0' );
 /**
  * Define the other required options.
  */
-define( 'SIMPLE_JWT_AUTH_ENDPOINT', 'wp-jwt' );
+define( 'SIMPLE_JWT_AUTH_ENDPOINT', 'auth' );
 define( 'SIMPLE_JWT_AUTH_TEXT_DOMAIN', 'simple-jwt-auth' );
 define( 'SIMPLE_JWT_AUTH_BASENAME', plugin_basename( __FILE__ ) );
 

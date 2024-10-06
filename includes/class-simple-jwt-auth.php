@@ -79,7 +79,7 @@ class Simple_Jwt_Auth {
 		if ( defined( 'SIMPLE_JWT_AUTH_ENDPOINT' ) ) {
 			$this->endpoint = SIMPLE_JWT_AUTH_ENDPOINT;
 		} else {
-			$this->endpoint = 'wp-jwt';
+			$this->endpoint = 'auth';
 		}
 
 		$this->load_dependencies();
@@ -189,7 +189,7 @@ class Simple_Jwt_Auth {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'simplejwt_admin_menus' );
-		$this->loader->add_action( 'simplejwt_admin_alert', $plugin_admin, 'simplejwt_admin_notices' );
+		$this->loader->add_action( 'simplejwt_admin_alert', $plugin_admin, 'simplejwt_admin_notices', 10, 2 );
 		$this->loader->add_action( 'admin_post_simplejwt_settings_action', $plugin_admin, 'simplejwt_settings_callback');
 		$this->loader->add_action( 'admin_post_simplejwt_options_action', $plugin_admin, 'simplejwt_options_callback');
 		$this->loader->add_filter( 'xmlrpc_enabled', $plugin_admin, 'simplejwt_disable_xmlrpc' );

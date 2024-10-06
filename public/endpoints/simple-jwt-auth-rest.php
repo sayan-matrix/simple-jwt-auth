@@ -216,7 +216,7 @@ class Simple_Jwt_Auth_Api extends Simple_Jwt_Auth_Public {
 
         // Let the user modify the token data before the sign.
         $token = JWT::encode(
-			apply_filters( 'simplejwt_token_before_sign', $payload, $user ),
+			apply_filters( 'simplejwt_payload_before_sign', $payload, $user ),
 			$encode_key,
 			$algorithm
 		);
