@@ -46,6 +46,15 @@ class Crypto {
 			);
 		}
 
+		// Check if the key length is exactly 32 characters.
+		if ( strlen( $secret ) !== 32 ) {
+			return new WP_Error(
+				'simplejwt_invalid_enckey_length',
+				JWTNotice::get_notice( 'invalid_enckey_length' ),
+				['status' => 400]
+			);
+		}
+
 		$cipher = 'aes-256-gcm';
 		$iv_length = openssl_cipher_iv_length( $cipher );
 		$iv_key = openssl_random_pseudo_bytes( $iv_length ); // Generate a secure IV.
@@ -84,6 +93,15 @@ class Crypto {
 				'simplejwt_bad_encryption_key',
 				JWTNotice::get_notice( 'bad_encryption_key' ),
 				['status' => 403]
+			);
+		}
+
+		// Check if the key length is exactly 32 characters.
+		if ( strlen( $secret ) !== 32 ) {
+			return new WP_Error(
+				'simplejwt_invalid_enckey_length',
+				JWTNotice::get_notice( 'invalid_enckey_length' ),
+				['status' => 400]
 			);
 		}
 
