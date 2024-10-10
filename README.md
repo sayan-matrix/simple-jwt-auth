@@ -32,19 +32,19 @@ Most shared hosts have disabled the **HTTP Authorization Header** by default.
 
 To enable this option you'll need to edit your **.htaccess** file by adding the following:
 
-`
+```
 RewriteEngine on
 RewriteCond %{HTTP:Authorization} ^(.*)
 RewriteRule ^(.*) - [E=HTTP_AUTHORIZATION:%1]
-`
+```
 
 #### WPEngine
 
 To enable this option you'll need to edit your .htaccess file adding the follow:
 
-`
+```
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
-`
+```
 
 ## Configuration
 
@@ -52,9 +52,9 @@ Simple JWT Auth plugin needs a **Signing Key** to encrypt and decrypt the **secr
 
 To add the **signing key** edit your `wp-config.php` file and add a new constant called **SIMPLE_JWT_AUTH_ENCRYPT_KEY**
 
-`
+```
 define( 'SIMPLE_JWT_AUTH_ENCRYPT_KEY', 'your-32-char-signing-key' );
-`
+```
 
 Generate a 32 charecter key from here: [https://string-gen.netlify.app](https://string-gen.netlify.app)
 
