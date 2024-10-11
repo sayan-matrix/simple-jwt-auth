@@ -1,13 +1,15 @@
 # Simple JWT Auth
 
-Extends the WP REST API using JSON Web Tokens for robust authentication, providing a secure and reliable way to access and manage WordPress data.
+![Simple JWT Auth](https://github.com/sayandey18/simple-jwt-auth/blob/master/.wordpress-org/banner-1544x500.jpg)
+
+> Extends the WP REST API using JSON Web Tokens for robust authentication, providing a secure and reliable way to access and manage WordPress data.
 
 | Attribute             | Details     |
-|:----------------------|:-----------:|
+|:----------------------|-------------|
 | Contributors          | sayandey18  |
-| Tested up to          |    6.6.2    |
-| Stable tag            |    1.0.0    |
-| Requires PHP          |     7.4     |
+| Tested up to          | 6.6.2       |
+| Stable tag            | 1.0.0       |
+| Requires PHP          | 7.4         |
 
 ## Description
 
