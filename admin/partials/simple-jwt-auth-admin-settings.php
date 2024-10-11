@@ -1,11 +1,16 @@
 <?php
 
-/* Require Crypto and DBManager class */
+/* Prevent direct access to this file. */
+if ( !defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/* Require Crypto and DBManager class. */
 use Simple_Jwt_Auth\OpenSSL\Crypto;
 use Simple_Jwt_Auth\Database\DBManager;
 
 /**
- * Provide a admin area view for the plugin
+ * Provide a admin area view for the plugin.
  *
  * This file is used to markup the admin-facing aspects of the plugin.
  *
@@ -22,6 +27,7 @@ use Simple_Jwt_Auth\Database\DBManager;
  * @link    https://github.com/sayandey18
  * @since   1.0.0
  */
+
 $keys = ['secret_key', 'private_key', 'public_key'];
 
 // Decrypted key values will be stored in this object.
