@@ -44,7 +44,7 @@ define( 'SIMPLE_JWT_AUTH_BASENAME', plugin_basename( __FILE__ ) );
  * The code that runs during plugin activation.
  * This action is documented in includes/class-simple-jwt-auth-activator.php
  */
-function activate_simple_jwt_auth() {
+function simplejwt_auth_activate() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-simple-jwt-auth-activator.php';
 	Simple_Jwt_Auth_Activator::activate();
 }
@@ -53,13 +53,13 @@ function activate_simple_jwt_auth() {
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-simple-jwt-auth-deactivator.php
  */
-function deactivate_simple_jwt_auth() {
+function simplejwt_auth_deactivate() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-simple-jwt-auth-deactivator.php';
 	Simple_Jwt_Auth_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_simple_jwt_auth' );
-register_deactivation_hook( __FILE__, 'deactivate_simple_jwt_auth' );
+register_activation_hook( __FILE__, 'simplejwt_auth_activate' );
+register_deactivation_hook( __FILE__, 'simplejwt_auth_deactivate' );
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -76,9 +76,9 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-simple-jwt-auth.php';
  *
  * @since	1.0.0
  */
-function run_simple_jwt_auth() {
+function simplejwt_auth_run() {
 	$plugin = new Simple_Jwt_Auth();
 	$plugin->run();
 }
 
-run_simple_jwt_auth();
+simplejwt_auth_run();
