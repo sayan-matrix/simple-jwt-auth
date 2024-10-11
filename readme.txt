@@ -590,7 +590,7 @@ Please submit an issue in our support portal. If you are a developer please [cre
 
 = 1.0.0 (Date: October 05, 2024) =
 * Initial release.
-* 44 git commits so far.
+* 49 git commits so far.
 * Work for one month during the free time.
 
 == Upgrade Notice ==
