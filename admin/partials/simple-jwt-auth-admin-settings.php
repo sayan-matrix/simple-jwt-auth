@@ -77,7 +77,7 @@ foreach ( $keys as $key ) {
          * 
          * @since   1.0.0
          */
-        do_action( 'simplejwt_admin_alert', $status, $message ); ?>
+        do_action( 'simplejwt_admin_alert', $status ?? false, $message ?? null ); ?>
 
         <div class="simplejwt-container-items">
             <div class="simplejwt-site-info">
