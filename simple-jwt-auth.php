@@ -11,7 +11,7 @@
  * Plugin Name:       Simple JWT Auth
  * Plugin URI:        https://github.com/sayandey18/simple-jwt-auth
  * Description:       Extends the WordPress REST API using JSON Web Tokens for robust authentication and authorization. It provides a secure and reliable way to access and manage WordPress data from external applications, making it ideal for building headless CMS solutions.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires PHP:      7.4
  * Author:            Sayan Dey
  * Author URI:        https://github.com/sayandey18
@@ -31,7 +31,7 @@ if ( !defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'SIMPLE_JWT_AUTH_VERSION', '1.0.0' );
+define( 'SIMPLE_JWT_AUTH_VERSION', '1.0.1' );
 
 /**
  * Define the other required options.

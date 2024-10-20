@@ -4,7 +4,7 @@ Donate link: https://github.com/sayandey18
 Tags: json web token, jwt auth, jwt, rest api, authentication
 Requires at least: 5.2 or higher
 Tested up to: 6.6.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -588,10 +588,15 @@ Please submit an issue in our support portal. If you are a developer please [cre
 
 == Changelog ==
 
+= 1.0.1 (Date: October 20, 2024) =
+* Disabled allowing direct file access.
+* Fixed the undefined variable notice in the admin area.
+* Bug fixes and improvements.
+
 = 1.0.0 (Date: October 05, 2024) =
 * Initial release.
-* 49 git commits so far.
+* 46 git commits so far.
 * Work for one month during the free time.
 
 == Upgrade Notice ==
-.
+Current version is compatible with previous version, feel free to upgrade.

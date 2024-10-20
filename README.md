@@ -8,7 +8,7 @@
 |:----------------------|-------------|
 | Contributors          | sayandey18  |
 | Tested up to          | 6.6.2       |
-| Stable tag            | 1.0.0       |
+| Stable tag            | 1.0.1       |
 | Requires PHP          | 7.4         |
 
 ## Description
@@ -563,10 +563,3 @@ This section describes how to install the plugin and get it working.
 4. Select the `simple-jwt-auth.zip` from your computer.
 5. Click on the 'Install Now' button.
 6. Activate the plugin through the 'Plugins' dashboard.
-
-## Changelog
-
-#### 1.0.0 (Date: October 05, 2024)
-* Initial release.
-* 44 git commits so far.
-* Work for one month during the free time.
