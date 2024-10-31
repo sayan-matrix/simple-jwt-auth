@@ -1,15 +1,18 @@
 # Simple JWT Auth
 
-![Simple JWT Auth](https://github.com/sayandey18/simple-jwt-auth/blob/master/.wordpress-org/banner-1544x500.jpg)
+![Simple JWT Auth](https://plugins.svn.wordpress.org/simple-jwt-auth/assets/banner-1544x500.jpg)
+
+<p align="center">
+    <img src="https://img.shields.io/badge/Support-stable-blue" alt="Support Level">
+    <img src="https://img.shields.io/wordpress/plugin/required-php/simple-jwt-auth?label=Required%20PHP" alt="Required PHP Version">
+    <img src="https://img.shields.io/wordpress/plugin/wp-version/simple-jwt-auth?label=Required%20WordPress" alt="Required WP Version">
+    <img src="https://img.shields.io/wordpress/plugin/tested/simple-jwt-auth?label=Tested%20Upto" alt="Tested WP Version">
+    <img src="https://img.shields.io/wordpress/plugin/v/simple-jwt-auth?label=Plugin%20Version" alt="Plugin Version">
+    <img src="https://img.shields.io/wordpress/plugin/dt/simple-jwt-auth?label=Downloads" alt="WordPress Plugin Downloads">
+    <img src="https://img.shields.io/github/license/sayandey18/simple-jwt-auth?label=License" alt="GitHub License">
+</p>
 
 > Extends the WP REST API using JSON Web Tokens for robust authentication, providing a secure and reliable way to access and manage WordPress data.
-
-| Attribute             | Details     |
-|:----------------------|-------------|
-| Contributors          | sayandey18  |
-| Tested up to          | 6.6.2       |
-| Stable tag            | 1.0.1       |
-| Requires PHP          | 7.4         |
 
 ## Description
 
@@ -550,14 +553,14 @@ This section describes how to install the plugin and get it working.
 
 ### Using FTP Client
 
-1. Download the latest plugin from [here](https://github.com/sayandey18/simple-jwt-auth)
+1. Download the latest plugin from [here](https://downloads.wordpress.org/plugin/simple-jwt-auth.zip)
 2. Unzip the `simple-jwt-auth.zip` file in your computer.
 3. Upload `simple-jwt-auth` folder into the `/wp-content/plugins/` directory.
 4. Activate the plugin through the 'Plugins' dashboard.
 
 ### Uploading from Dashboard
 
-1. Download the latest plugin from [here](https://github.com/sayandey18/simple-jwt-auth)
+1. Download the latest plugin from [here](https://downloads.wordpress.org/plugin/simple-jwt-auth.zip)
 2. Navigate to the Plugins section and click 'Add New Plugin' from the dashboard.
 3. Navigate to the Upload area by clicking on the 'Upload Plugin' button.
 4. Select the `simple-jwt-auth.zip` from your computer.
