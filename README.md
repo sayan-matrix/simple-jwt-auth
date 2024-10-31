@@ -1,6 +1,6 @@
 # Simple JWT Auth
 
-![Simple JWT Auth](https://plugins.svn.wordpress.org/simple-jwt-auth/assets/banner-1544x500.jpg)
+![Simple JWT Auth](https://raw.githubusercontent.com/sayandey18/simple-jwt-auth/refs/heads/master/.wordpress-org/banner-1544x500.jpg)
 
 <p align="center">
     <img src="https://img.shields.io/badge/Support-stable-blue" alt="Support Level">
