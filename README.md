@@ -9,7 +9,6 @@
     <img src="https://img.shields.io/wordpress/plugin/tested/simple-jwt-auth?label=Tested%20Upto" alt="Tested WP Version">
     <img src="https://img.shields.io/wordpress/plugin/v/simple-jwt-auth?label=Plugin%20Version" alt="Plugin Version">
     <img src="https://img.shields.io/wordpress/plugin/dt/simple-jwt-auth?label=Downloads" alt="WordPress Plugin Downloads">
-    <img src="https://img.shields.io/github/license/sayandey18/simple-jwt-auth?label=License" alt="GitHub License">
 </p>
 
 > Extends the WP REST API using JSON Web Tokens for robust authentication, providing a secure and reliable way to access and manage WordPress data.
@@ -22,7 +21,7 @@ JSON Web Token (JWT) is an open standard ([RFC 7519](https://tools.ietf.org/html
 
 It provides a secure and reliable way to access and manage WordPress data from external applications, making it ideal for building headless CMS solutions.
 
-- Support & question: [WordPress support forum](#)
+- Support & question: [WordPress support forum](https://wordpress.org/support/plugin/simple-jwt-auth/)
 - Reporting plugin's bug: [GitHub issues tracker](https://github.com/sayandey18/simple-jwt-auth/issues)
 
 **Plugins GitHub Repo** https://github.com/sayandey18/simple-jwt-auth
