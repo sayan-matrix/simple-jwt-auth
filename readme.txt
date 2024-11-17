@@ -3,12 +3,11 @@ Contributors: sayandey18
 Donate link: https://github.com/sayandey18
 Tags: json web token, jwt auth, jwt, rest api, authentication
 Requires at least: 5.2 or higher
-Tested up to: 6.6.2
-Stable tag: 1.0.1
+Tested up to: 6.7
+Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-
 
 Extends the WP REST API using JSON Web Tokens for robust authentication, providing a secure and reliable way to access and manage WordPress data.
 
@@ -20,7 +19,7 @@ JSON Web Token (JWT) is an open standard ([RFC 7519](https://tools.ietf.org/html
 
 It provides a secure and reliable way to access and manage WordPress data from external applications, making it ideal for building headless CMS solutions.
 
-- Support & question: [WordPress support forum](#)
+- Support & question: [WordPress support forum](https://wordpress.org/support/plugin/simple-jwt-auth/)
 - Reporting plugin's bug: [GitHub issues tracker](https://github.com/sayandey18/simple-jwt-auth/issues)
 
 **Plugins GitHub Repo** https://github.com/sayandey18/simple-jwt-auth
@@ -552,14 +551,14 @@ This section describes how to install the plugin and get it working.
 
 = Using FTP Client =
 
-1. Download the latest plugin from [here](https://github.com/sayandey18/simple-jwt-auth)
+1. Download the latest plugin from [here](https://downloads.wordpress.org/plugin/simple-jwt-auth.zip)
 2. Unzip the `simple-jwt-auth.zip` file in your computer.
 3. Upload `simple-jwt-auth` folder into the `/wp-content/plugins/` directory.
 4. Activate the plugin through the 'Plugins' dashboard.
 
 = Uploading from Dashboard =
 
-1. Download the latest plugin from [here](https://github.com/sayandey18/simple-jwt-auth)
+1. Download the latest plugin from [here](https://downloads.wordpress.org/plugin/simple-jwt-auth.zip)
 2. Navigate to the Plugins section and click 'Add New Plugin' from the dashboard.
 3. Navigate to the Upload area by clicking on the 'Upload Plugin' button.
 4. Select the `simple-jwt-auth.zip` from your computer.
@@ -587,6 +586,8 @@ Please submit an issue in our support portal. If you are a developer please [cre
 3. Simple JWT Auth Options
 
 == Changelog ==
+= 1.0.2 (Date: November 17, 2024) =
+* Tested up to WordPress 6.7
 
 = 1.0.1 (Date: October 20, 2024) =
 * Disabled allowing direct file access.
