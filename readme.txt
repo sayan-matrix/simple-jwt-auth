@@ -3,8 +3,8 @@ Contributors: sayandey18
 Donate link: https://github.com/sayandey18
 Tags: json web token, jwt auth, jwt, rest api, authentication
 Requires at least: 5.2 or higher
-Tested up to: 6.6.2
-Stable tag: 1.0.1
+Tested up to: 6.7
+Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -586,6 +586,8 @@ Please submit an issue in our support portal. If you are a developer please [cre
 3. Simple JWT Auth Options
 
 == Changelog ==
+= 1.0.2 (Date: November 17, 2024) =
+* Tested up to WordPress 6.7
 
 = 1.0.1 (Date: October 20, 2024) =
 * Disabled allowing direct file access.
